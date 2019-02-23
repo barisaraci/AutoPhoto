@@ -33,6 +33,7 @@ public class PhotoActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 finish();
+                overridePendingTransition(R.anim.anim_open_right, R.anim.anim_close_right);
             }
         });
     }

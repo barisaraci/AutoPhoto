@@ -1,6 +1,7 @@
 package com.ku.autophoto;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,7 +18,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         final CheckBox checkBoxFlash = findViewById(R.id.checkbox_flash);
 
         ImageButton buttonSnap = findViewById(R.id.button_snap);
+        final Activity activity = this;
         buttonSnap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -126,6 +127,8 @@ public class MainActivity extends AppCompatActivity {
                         Intent intent = new Intent(context, PhotoActivity.class);
                         intent.putExtra("photoPath", photoPath);
                         startActivity(intent);
+                        overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
+                        //startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(activity).toBundle());
                     }
                 });
             }
