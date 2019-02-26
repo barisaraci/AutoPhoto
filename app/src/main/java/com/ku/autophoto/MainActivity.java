@@ -49,12 +49,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         context = this;
-        layoutMain = (ViewGroup) getWindow().getDecorView().getRootView();
+
+        initLayout();
 
         if (Build.VERSION.SDK_INT >= 23) {
-            requestCameraPermission();
-        } else {
-            initLayout();
+            camera.requestPermissions(this);
+            //requestCameraPermission();
         }
     }
 
@@ -68,14 +68,18 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_SNAP);
             }
+
         } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+
             initLayout();
         }
     }
 
     private void initLayout() {
+        layoutMain = (ViewGroup) getWindow().getDecorView().getRootView();
+
         camera = findViewById(R.id.camera);
         camera.setGestureListener(new CameraKitView.GestureListener() {
             @Override
@@ -133,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         ImageButton buttonFlip = findViewById(R.id.button_flip);
+
         buttonFlip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -229,8 +234,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        //camera.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
+        camera.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        /*switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_SNAP: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     initLayout();
@@ -241,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return;
             }
-        }
+        }*/
     }
 
 }
