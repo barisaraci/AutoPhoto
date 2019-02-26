@@ -102,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
         final CheckBox checkBoxFlash = findViewById(R.id.checkbox_flash);
 
         ImageButton buttonSnap = findViewById(R.id.button_snap);
-        final Activity activity = this;
         buttonSnap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -128,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtra("photoPath", photoPath);
                         startActivity(intent);
                         overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
-                        //startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(activity).toBundle());
                     }
                 });
             }
