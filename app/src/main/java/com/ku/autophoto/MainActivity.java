@@ -70,6 +70,28 @@ public class MainActivity extends AppCompatActivity {
 
     private void initLayout() {
         camera = findViewById(R.id.camera);
+        camera.requestPermissions(this);
+        camera.setGestureListener(new CameraKitView.GestureListener() {
+            @Override
+            public void onTap(CameraKitView cameraKitView, float v, float v1) {
+
+            }
+
+            @Override
+            public void onLongTap(CameraKitView cameraKitView, float v, float v1) {
+
+            }
+
+            @Override
+            public void onDoubleTap(CameraKitView cameraKitView, float v, float v1) {
+                camera.toggleFacing();
+            }
+
+            @Override
+            public void onPinch(CameraKitView cameraKitView, float v, float v1, float v2) {
+
+            }
+        });
 
         final CheckBox checkBoxFlash = findViewById(R.id.checkbox_flash);
 
