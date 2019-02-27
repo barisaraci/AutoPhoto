@@ -2,7 +2,7 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_checked="true">
         <bitmap android:src="@drawable/flash"
-            android:tint="@color/colorLight" />
+            android:tint="@color/colorPrimary" />
     </item>
     <item>
         <bitmap android:src="@drawable/flash"

@@ -10,8 +10,13 @@
     <com.camerakit.CameraKitView
         android:id="@+id/camera"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:adjustViewBounds="true"/>
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:keepScreenOn="true"
+        app:camera_flash="auto"
+        app:camera_facing="back"
+        app:camera_focus="continuous"
+        app:camera_permissions="camera|storage" />
 
     <ImageButton
         android:id="@+id/button_snap"

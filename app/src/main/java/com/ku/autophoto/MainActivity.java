@@ -1,21 +1,15 @@
 package com.ku.autophoto;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -26,7 +20,6 @@ import android.widget.ImageButton;
 
 import com.camerakit.CameraKit;
 import com.camerakit.CameraKitView;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,10 +31,9 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity {
 
     private Context context;
-    private CameraKitView camera;
     private ViewGroup layoutMain;
     private String photoPath = "";
-    private static final int MY_PERMISSIONS_REQUEST_SNAP = 100;
+    private CameraKitView camera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,16 +41,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         context = this;
-
+        layoutMain = (ViewGroup) getWindow().getDecorView().getRootView();
         initLayout();
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            camera.requestPermissions(this);
-            //requestCameraPermission();
-        }
+        /*if (Build.VERSION.SDK_INT >= 23) {
+            requestCameraPermission();
+        } else {
+            initLayout();
+        }*/
     }
 
-    private void requestCameraPermission() {
+    /*private void requestCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -68,40 +61,15 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_SNAP);
             }
-
         } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-
             initLayout();
         }
-    }
+    }*/
 
     private void initLayout() {
-        layoutMain = (ViewGroup) getWindow().getDecorView().getRootView();
-
         camera = findViewById(R.id.camera);
-        camera.setGestureListener(new CameraKitView.GestureListener() {
-            @Override
-            public void onTap(CameraKitView cameraKitView, float v, float v1) {
-
-            }
-
-            @Override
-            public void onLongTap(CameraKitView cameraKitView, float v, float v1) {
-
-            }
-
-            @Override
-            public void onDoubleTap(CameraKitView cameraKitView, float v, float v1) {
-                camera.setFacing(camera.getFacing() == CameraKit.FACING_BACK ? CameraKit.FACING_FRONT : CameraKit.FACING_BACK);
-            }
-
-            @Override
-            public void onPinch(CameraKitView cameraKitView, float v, float v1, float v2) {
-
-            }
-        });
 
         final CheckBox checkBoxFlash = findViewById(R.id.checkbox_flash);
 
@@ -110,11 +78,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 camera.setFlash(checkBoxFlash.isChecked() ? CameraKit.FLASH_ON : CameraKit.FLASH_OFF);
-
                 camera.captureImage(new CameraKitView.ImageCallback() {
                     @Override
                     public void onImage(CameraKitView cameraKitView, final byte[] capturedImage) {
                         File photoFile = getOutputMediaFile();
+
                         try {
                             FileOutputStream fos = new FileOutputStream(photoFile);
                             fos.write(capturedImage);
@@ -130,21 +98,20 @@ public class MainActivity extends AppCompatActivity {
                         Intent intent = new Intent(context, PhotoActivity.class);
                         intent.putExtra("photoPath", photoPath);
                         startActivity(intent);
-                        overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
                     }
                 });
             }
         });
 
         ImageButton buttonFlip = findViewById(R.id.button_flip);
-
         buttonFlip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                camera.setFacing(camera.getFacing() == CameraKit.FACING_BACK ? CameraKit.FACING_FRONT : CameraKit.FACING_BACK);
+                camera.toggleFacing();
             }
         });
     }
+
 
     private File getOutputMediaFile() {
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), getResources().getString(R.string.app_name));
@@ -212,41 +179,26 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         camera.onStart();
     }
-
     @Override
     protected void onResume() {
         super.onResume();
         camera.onResume();
     }
-
     @Override
     protected void onPause() {
         camera.onPause();
         super.onPause();
     }
-
     @Override
     protected void onStop() {
         camera.onStop();
         super.onStop();
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         camera.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        /*switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_SNAP: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    initLayout();
-                } else {
-                    Snackbar snackbar = Snackbar.make(layoutMain, getResources().getString(R.string.error_camera_permission), Snackbar.LENGTH_LONG).setAction("Action", null);
-                    snackbar.getView().setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimaryDark));
-                    snackbar.show();
-                }
-                return;
-            }
-        }*/
     }
+
 
 }
