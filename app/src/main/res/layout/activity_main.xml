@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.percentlayout.widget.PercentRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/percentRelativeLayout2"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
@@ -9,49 +10,53 @@
 
     <com.camerakit.CameraKitView
         android:id="@+id/camera"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:adjustViewBounds="true"
         android:keepScreenOn="true"
-        app:camera_flash="auto"
         app:camera_facing="back"
         app:camera_focus="continuous"
-        app:camera_permissions="camera|storage" />
+        app:camera_permissions="camera|storage"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/button_snap"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_widthPercent="22%"
-        app:layout_aspectRatio="100%"
-        android:layout_centerInParent="true"
-        android:layout_alignParentBottom="true"
         android:layout_marginBottom="50dp"
-        android:background="@drawable/selector_button_snap" />
+        android:background="@drawable/selector_button_snap"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintWidth_percent=".22"
+        app:layout_constraintDimensionRatio="1" />
 
     <ImageButton
         android:id="@+id/button_flip"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_widthPercent="11%"
-        app:layout_aspectRatio="135%"
-        android:layout_toLeftOf="@id/button_snap"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="80dp"
-        android:layout_marginRight="20dp"
-        android:background="@drawable/selector_button_flip" />
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/selector_button_flip"
+        app:layout_constraintBottom_toBottomOf="@+id/button_snap"
+        app:layout_constraintEnd_toStartOf="@+id/button_snap"
+        app:layout_constraintTop_toTopOf="@+id/button_snap"
+        app:layout_constraintWidth_percent=".11"
+        app:layout_constraintDimensionRatio="1.35" />
 
     <CheckBox
         android:id="@+id/checkbox_flash"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_widthPercent="5%"
-        app:layout_aspectRatio="56%"
-        android:layout_toRightOf="@id/button_snap"
+        android:layout_marginStart="20dp"
+        android:background="@drawable/selector_checkbox_flash"
         android:button="@android:color/transparent"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="80dp"
-        android:layout_marginLeft="20dp"
-        android:background="@drawable/selector_checkbox_flash" />
+        app:layout_constraintBottom_toBottomOf="@+id/button_snap"
+        app:layout_constraintStart_toEndOf="@+id/button_snap"
+        app:layout_constraintTop_toTopOf="@+id/button_snap"
+        app:layout_constraintWidth_percent=".05"
+        app:layout_constraintDimensionRatio="0.56" />
 
-</androidx.percentlayout.widget.PercentRelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
