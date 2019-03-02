@@ -13,13 +13,18 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 
-import com.camerakit.CameraKit;
-import com.camerakit.CameraKitView;
+import com.otaliastudios.cameraview.CameraListener;
+import com.otaliastudios.cameraview.CameraView;
+import com.otaliastudios.cameraview.Flash;
+import com.otaliastudios.cameraview.PictureResult;
+import com.otaliastudios.cameraview.VideoResult;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,7 +38,9 @@ public class MainActivity extends AppCompatActivity {
     private Context context;
     private ViewGroup layoutMain;
     private String photoPath = "";
-    private CameraKitView camera;
+    private CameraView camera;
+
+    private GestureDetector mGesDetect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
         context = this;
         layoutMain = (ViewGroup) getWindow().getDecorView().getRootView();
+        mGesDetect = new GestureDetector(this, new DoubleTapGestureDetector());
         initLayout();
 
         /*if (Build.VERSION.SDK_INT >= 23) {
@@ -70,26 +78,41 @@ public class MainActivity extends AppCompatActivity {
 
     private void initLayout() {
         camera = findViewById(R.id.camera);
-        camera.requestPermissions(this);
-        camera.setGestureListener(new CameraKitView.GestureListener() {
+        camera.setLifecycleOwner(this);
+        camera.addCameraListener(new CameraListener() {
             @Override
-            public void onTap(CameraKitView cameraKitView, float v, float v1) {
+            public void onPictureTaken(PictureResult result) {
+                byte[] data = result.getData();
+                File photoFile = getOutputMediaFile();
 
+                try {
+                    FileOutputStream fos = new FileOutputStream(photoFile);
+                    fos.write(data);
+                    fos.close();
+                } catch (FileNotFoundException e) {
+                    Log.e(context.getResources().getString(R.string.app_name), "File not found: " + e.getMessage());
+                } catch (IOException e) {
+                    Log.e(context.getResources().getString(R.string.app_name), "Error accessing file: " + e.getMessage());
+                }
+
+                adjustAndSaveBitmap(photoFile.getPath());
+
+                Intent intent = new Intent(context, PhotoActivity.class);
+                intent.putExtra("photoPath", photoPath);
+                startActivity(intent);
             }
 
             @Override
-            public void onLongTap(CameraKitView cameraKitView, float v, float v1) {
+            public void onVideoTaken(VideoResult result) {
 
             }
+        });
 
+        camera.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onDoubleTap(CameraKitView cameraKitView, float v, float v1) {
-                camera.toggleFacing();
-            }
-
-            @Override
-            public void onPinch(CameraKitView cameraKitView, float v, float v1, float v2) {
-
+            public boolean onTouch(View v, MotionEvent event) {
+                mGesDetect.onTouchEvent(event);
+                return true;
             }
         });
 
@@ -99,29 +122,8 @@ public class MainActivity extends AppCompatActivity {
         buttonSnap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                camera.setFlash(checkBoxFlash.isChecked() ? CameraKit.FLASH_ON : CameraKit.FLASH_OFF);
-                camera.captureImage(new CameraKitView.ImageCallback() {
-                    @Override
-                    public void onImage(CameraKitView cameraKitView, final byte[] capturedImage) {
-                        File photoFile = getOutputMediaFile();
-
-                        try {
-                            FileOutputStream fos = new FileOutputStream(photoFile);
-                            fos.write(capturedImage);
-                            fos.close();
-                        } catch (FileNotFoundException e) {
-                            Log.e(context.getResources().getString(R.string.app_name), "File not found: " + e.getMessage());
-                        } catch (IOException e) {
-                            Log.e(context.getResources().getString(R.string.app_name), "Error accessing file: " + e.getMessage());
-                        }
-
-                        adjustAndSaveBitmap(photoFile.getPath());
-
-                        Intent intent = new Intent(context, PhotoActivity.class);
-                        intent.putExtra("photoPath", photoPath);
-                        startActivity(intent);
-                    }
-                });
+                camera.setFlash(checkBoxFlash.isChecked() ? Flash.ON : Flash.OFF);
+                camera.takePicture();
             }
         });
 
@@ -132,6 +134,16 @@ public class MainActivity extends AppCompatActivity {
                 camera.toggleFacing();
             }
         });
+    }
+
+    class DoubleTapGestureDetector extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            camera.toggleFacing();
+            return true;
+        }
+
     }
 
 
@@ -195,32 +207,5 @@ public class MainActivity extends AppCompatActivity {
         }
         return rotate;
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        camera.onStart();
-    }
-    @Override
-    protected void onResume() {
-        super.onResume();
-        camera.onResume();
-    }
-    @Override
-    protected void onPause() {
-        camera.onPause();
-        super.onPause();
-    }
-    @Override
-    protected void onStop() {
-        camera.onStop();
-        super.onStop();
-    }
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        camera.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
 
 }

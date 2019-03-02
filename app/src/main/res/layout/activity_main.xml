@@ -2,21 +2,17 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/percentRelativeLayout2"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
-    <com.camerakit.CameraKitView
+    <com.otaliastudios.cameraview.CameraView
         android:id="@+id/camera"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:adjustViewBounds="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:keepScreenOn="true"
-        app:camera_facing="back"
-        app:camera_focus="continuous"
-        app:camera_permissions="camera|storage"
+        app:cameraPreview="surface"
+        app:cameraAudio="off"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
