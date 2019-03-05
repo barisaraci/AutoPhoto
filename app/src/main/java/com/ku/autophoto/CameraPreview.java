@@ -4,9 +4,11 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,19 +17,31 @@ import java.util.List;
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 
     private SurfaceHolder holder;
+    private MainActivity activity;
     private Camera camera;
+    final GestureDetector gestureDetector;
 
     private float dist;
 
     private static final int FOCUS_AREA_SIZE = 300;
 
-    public CameraPreview(Context context, Camera camera) {
+    public CameraPreview(Context context, Camera camera, MainActivity activity) {
         super(context);
+        gestureDetector = new GestureDetector(context, new DoubleTapGestureDetector());
+        this.activity = activity;
         this.camera = camera;
 
         holder = getHolder();
         holder.addCallback(this);
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+        this.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                gestureDetector.onTouchEvent(event);
+                return true;
+            }
+        });
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
@@ -154,6 +168,23 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         float x = event.getX(0) - event.getX(1);
         float y = event.getY(0) - event.getY(1);
         return (float) Math.sqrt(x * x + y * y);
+    }
+
+    class DoubleTapGestureDetector extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            activity.stopCamera();
+
+            if (activity.getCurrentCameraId() == Camera.CameraInfo.CAMERA_FACING_BACK)
+                activity.setCurrentCameraId(Camera.CameraInfo.CAMERA_FACING_FRONT);
+            else
+                activity.setCurrentCameraId(Camera.CameraInfo.CAMERA_FACING_BACK);
+
+            activity.startCamera(activity.getCurrentCameraId());
+            return true;
+        }
+
     }
 
 }

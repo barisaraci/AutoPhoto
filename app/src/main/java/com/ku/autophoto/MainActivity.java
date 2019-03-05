@@ -12,7 +12,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.PointF;
 import android.hardware.Camera;
 import android.media.ExifInterface;
 import android.net.Uri;
@@ -25,11 +24,13 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.affectiva.android.affdex.sdk.Frame;
 import com.affectiva.android.affdex.sdk.detector.CameraDetector;
 import com.affectiva.android.affdex.sdk.detector.Detector;
 import com.affectiva.android.affdex.sdk.detector.Face;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -48,9 +49,9 @@ public class MainActivity extends AppCompatActivity {
     private FrameLayout cameraView;
     private CameraDetector detector;
     private Detector.ImageListener detectorListener;
+    private TextView tvJoy, tvAnger, tvDisgust;
 
     private String photoPath = "";
-    public static boolean isProcessDone;
     private int currentCameraId;
     private boolean isSnapping;
 
@@ -74,26 +75,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void requestCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA) &&
-                    ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE) &&
-                    ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_SNAP);
-            }
-        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-            init();
-        }
-    }
-
     private void init() {
         cameraView = findViewById(R.id.layout_camera);
-        initCamera();
 
         final CheckBox checkboxFlash = findViewById(R.id.checkbox_flash);
 
@@ -118,111 +101,67 @@ public class MainActivity extends AppCompatActivity {
         flipButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                preview.getHolder().removeCallback(preview);
-                camera.stopPreview();
-                camera.release();
-                camera = null;
-                cameraView.removeAllViews();
+                stopCamera();
 
                 if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK)
                     currentCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
                 else
                     currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
 
-                camera = Camera.open(currentCameraId);
-
-                setCameraProperties(currentCameraId, camera);
-                try {
-                    camera.setPreviewDisplay(preview.getHolder());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                preview = new CameraPreview(context, camera);
-                cameraView.addView(preview);
+                startCamera(currentCameraId);
             }
         });
+
+        tvJoy = findViewById(R.id.tv_Joy);
+        tvAnger = findViewById(R.id.tv_Anger);
+        tvDisgust = findViewById(R.id.tv_Disgust);
 
         detectorListener = new Detector.ImageListener() {
             @Override
             public void onImageResults(List<Face> faces, Frame frame, float v) {
                 if (faces == null)
-                    return; //frame was not processed
+                    return;
 
                 if (faces.size() == 0)
-                    return; //no face found
+                    return;
 
-                //For each face found
                 for (int i = 0 ; i < faces.size() ; i++) {
                     Face face = faces.get(i);
 
-                    int faceId = face.getId();
-
-                    //Appearance
-                    Face.GENDER genderValue = face.appearance.getGender();
-                    Face.GLASSES glassesValue = face.appearance.getGlasses();
-                    Face.AGE ageValue = face.appearance.getAge();
-                    Face.ETHNICITY ethnicityValue = face.appearance.getEthnicity();
-
-
-                    //Some Emoji
-                    float smiley = face.emojis.getSmiley();
-                    float laughing = face.emojis.getLaughing();
-                    float wink = face.emojis.getWink();
-
-
-                    //Some Emotions
                     float joy = face.emotions.getJoy();
+                    tvJoy.setText("Joy: " + String.valueOf((int) joy) + " %");
                     float anger = face.emotions.getAnger();
+                    tvAnger.setText("Anger: " + String.valueOf((int) anger) + " %");
                     float disgust = face.emotions.getDisgust();
-
-                    //Some Expressions
-                    float smile = face.expressions.getSmile();
-                    Log.i("test: ", String.valueOf(smile));
-                    float brow_furrow = face.expressions.getBrowFurrow();
-                    float brow_raise = face.expressions.getBrowRaise();
-
-                    //Measurements
-                    float interocular_distance = face.measurements.getInterocularDistance();
-                    float yaw = face.measurements.orientation.getYaw();
-                    float roll = face.measurements.orientation.getRoll();
-                    float pitch = face.measurements.orientation.getPitch();
-
-                    //Face feature points coordinates
-                    PointF[] points = face.getFacePoints();
+                    tvDisgust.setText("Disgust: " + String.valueOf((int) disgust) + " %");
                 }
             }};
+
+        startCamera(Camera.CameraInfo.CAMERA_FACING_FRONT);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_SNAP: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Intent intent = new Intent(context, MainActivity.class);
-                    startActivity(intent);
-                } else {
-                    /*Snackbar snackbar = Snackbar.make(layoutMain, getResources().getString(R.string.error_camera_permission), Snackbar.LENGTH_LONG).setAction("Action", null);
-                    snackbar.getView().setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimaryDark));
-                    snackbar.show();*/
-                }
-                return;
-            }
-        }
-    }
-
-    private void initCamera() {
-        currentCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+    public void startCamera(int cameraId) {
+        currentCameraId = cameraId;
         camera = Camera.open(currentCameraId);
         setCameraProperties(currentCameraId, camera);
 
-        preview = new CameraPreview(context, camera);
+        preview = new CameraPreview(context, camera, this);
         detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT,
                 preview, 1, Detector.FaceDetectorMode.LARGE_FACES);
-        detector.setDetectSmile(true);
+        detector.setDetectAllEmotions(true);
         detector.setImageListener(detectorListener);
         detector.start();
         cameraView.addView(preview);
+    }
+
+    public void stopCamera() {
+        isSnapping = false;
+        preview.getHolder().removeCallback(preview);
+        camera.stopPreview();
+        camera.release();
+        camera = null;
+        cameraView.removeAllViews();
+        detector.stop();
     }
 
     private Camera.PictureCallback picture = new Camera.PictureCallback() {
@@ -385,16 +324,46 @@ public class MainActivity extends AppCompatActivity {
         return rotate;
     }
 
+    private void requestCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA) &&
+                    ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE) &&
+                    ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_SNAP);
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_SNAP);
+            }
+        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            init();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_SNAP: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    init();
+                } else {
+                    Snackbar snackbar = Snackbar.make(layoutMain, getResources().getString(R.string.error_camera_permission), Snackbar.LENGTH_LONG).setAction("Action", null);
+                    snackbar.getView().setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimaryDark));
+                    snackbar.show();
+                }
+                return;
+            }
+        }
+    }
+
     @Override
     public void onPause() {
         super.onPause();
 
-        isSnapping = false;
-        preview.getHolder().removeCallback(preview);
-        camera.stopPreview();
-        camera.release();
-        camera = null;
-        cameraView.removeView(preview);
+        if (camera != null)
+            stopCamera();
     }
 
     @Override
@@ -405,12 +374,17 @@ public class MainActivity extends AppCompatActivity {
             if (Build.VERSION.SDK_INT >= 23) {
                 requestCameraPermission();
             } else {
-                initCamera();
+                startCamera(Camera.CameraInfo.CAMERA_FACING_FRONT);
             }
         }
+    }
 
-        if (isProcessDone)
-            finish();
+    public int getCurrentCameraId() {
+        return currentCameraId;
+    }
+
+    public void setCurrentCameraId(int currentCameraId) {
+        this.currentCameraId = currentCameraId;
     }
 
 }
