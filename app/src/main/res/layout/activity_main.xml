@@ -6,13 +6,11 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.otaliastudios.cameraview.CameraView
-        android:id="@+id/camera"
+    <FrameLayout
+        android:id="@+id/layout_camera"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:keepScreenOn="true"
-        app:cameraPreview="surface"
-        app:cameraAudio="off"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -29,6 +27,8 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintWidth_percent=".22"
         app:layout_constraintDimensionRatio="1" />
+
+
 
     <ImageButton
         android:id="@+id/button_flip"
