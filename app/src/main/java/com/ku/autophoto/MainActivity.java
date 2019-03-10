@@ -2,11 +2,6 @@ package com.ku.autophoto;
 
 import android.Manifest;
 import android.content.Context;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -18,17 +13,16 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.affectiva.android.affdex.sdk.Frame;
-import com.affectiva.android.affdex.sdk.detector.CameraDetector;
-import com.affectiva.android.affdex.sdk.detector.Detector;
 import com.affectiva.android.affdex.sdk.detector.Face;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -40,20 +34,37 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+public class MainActivity extends AppCompatActivity implements
+        CameraView.OnCameraViewEventListener, AsyncFrameDetector.OnDetectorEventListener{
 
     private Context context;
     private ViewGroup layoutMain;
-    private Camera camera;
-    private CameraPreview preview;
-    private FrameLayout cameraView;
-    private CameraDetector detector;
-    private Detector.ImageListener detectorListener;
     private TextView tvJoy, tvAnger, tvDisgust;
 
     private String photoPath = "";
-    private int currentCameraId;
-    private boolean isSnapping;
+
+    private AsyncFrameDetector asyncDetector;
+    private boolean isCameraFront = true;
+    private boolean isCameraStarted  = false;
+    private boolean isSDKRunning = false;
+
+    private long numberCameraFramesReceived = 0;
+    private long lastCameraFPSResetTime = -1L;
+    private long numberSDKFramesReceived = 0;
+    private long lastSDKFPSResetTime = -1L;
+
+    private int startTime = 0;
+    private float lastTimestamp = -1f;
+    private final float epsilon = .3f;
+    private long firstFrameTime = -1;
+    private float lastReceivedTimestamp = -1f;
+
+    private CheckBox checkboxFlash;
+    private CameraView cameraView;
 
     private static final int TARGET_WIDTH = 768;
     private static final int TARGET_HEIGHT = 1024;
@@ -76,24 +87,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void init() {
-        cameraView = findViewById(R.id.layout_camera);
+        initEmotionSDK();
 
-        final CheckBox checkboxFlash = findViewById(R.id.checkbox_flash);
+        cameraView = findViewById(R.id.camera_view);
+        cameraView.setOnCameraViewEventListener(this);
+
+        checkboxFlash = findViewById(R.id.checkbox_flash);
 
         ImageButton saveButton = findViewById(R.id.button_snap);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!isSnapping) {
-                    if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
-                        Camera.Parameters params = camera.getParameters();
-                        params.setFlashMode((checkboxFlash.isChecked()) ? Camera.Parameters.FLASH_MODE_ON : Camera.Parameters.FLASH_MODE_OFF);
-                        camera.setParameters(params);
-                    }
-
-                    camera.takePicture(null, null, picture);
-                    isSnapping = true;
-                }
+                cameraView.takePhoto(picture, checkboxFlash.isChecked());
             }
         });
 
@@ -101,14 +106,8 @@ public class MainActivity extends AppCompatActivity {
         flipButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                stopCamera();
-
-                if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK)
-                    currentCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
-                else
-                    currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
-
-                startCamera(currentCameraId);
+                isCameraFront = !isCameraFront;
+                startCamera();
             }
         });
 
@@ -116,52 +115,44 @@ public class MainActivity extends AppCompatActivity {
         tvAnger = findViewById(R.id.tv_Anger);
         tvDisgust = findViewById(R.id.tv_Disgust);
 
-        detectorListener = new Detector.ImageListener() {
-            @Override
-            public void onImageResults(List<Face> faces, Frame frame, float v) {
-                if (faces == null)
-                    return;
-
-                if (faces.size() == 0)
-                    return;
-
-                for (int i = 0 ; i < faces.size() ; i++) {
-                    Face face = faces.get(i);
-
-                    float joy = face.emotions.getJoy();
-                    tvJoy.setText("Joy: " + String.valueOf((int) joy) + " %");
-                    float anger = face.emotions.getAnger();
-                    tvAnger.setText("Anger: " + String.valueOf((int) anger) + " %");
-                    float disgust = face.emotions.getDisgust();
-                    tvDisgust.setText("Disgust: " + String.valueOf((int) disgust) + " %");
-                }
-            }};
-
-        startCamera(Camera.CameraInfo.CAMERA_FACING_FRONT);
+        startCamera();
     }
 
-    public void startCamera(int cameraId) {
-        currentCameraId = cameraId;
-        camera = Camera.open(currentCameraId);
-        setCameraProperties(currentCameraId, camera);
+    private void initEmotionSDK(){
+        asyncDetector = new AsyncFrameDetector(this);
+        asyncDetector.setOnDetectorEventListener(this);
 
-        preview = new CameraPreview(context, camera, this);
-        detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT,
-                preview, 1, Detector.FaceDetectorMode.LARGE_FACES);
-        detector.setDetectAllEmotions(true);
-        detector.setImageListener(detectorListener);
-        detector.start();
-        cameraView.addView(preview);
+        final CheckBox checkboxEmotion = findViewById(R.id.checkbox_emotion);
+        checkboxEmotion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isSDKRunning) {
+                    isSDKRunning = false;
+                    asyncDetector.stop();
+                } else {
+                    isSDKRunning = true;
+                    asyncDetector.start();
+                }
+                resetFPS();
+            }
+        });
+    }
+
+    public void startCamera() {
+        if (isCameraStarted) {
+            cameraView.stopCamera();
+        }
+        cameraView.startCamera(isCameraFront ? CameraCore.CameraType.CAMERA_FRONT : CameraCore.CameraType.CAMERA_BACK);
+        isCameraStarted = true;
+        asyncDetector.reset();
     }
 
     public void stopCamera() {
-        isSnapping = false;
-        preview.getHolder().removeCallback(preview);
-        camera.stopPreview();
-        camera.release();
-        camera = null;
-        cameraView.removeAllViews();
-        detector.stop();
+        if (!isCameraStarted)
+            return;
+
+        cameraView.stopCamera();
+        isCameraStarted = false;
     }
 
     private Camera.PictureCallback picture = new Camera.PictureCallback() {
@@ -307,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
                     ExifInterface.ORIENTATION_UNDEFINED);
             switch (orientation) {
                 case ExifInterface.ORIENTATION_NORMAL:
-                    rotate = 0;
+                    //rotate = 0;
                 case ExifInterface.ORIENTATION_ROTATE_270:
                     rotate = 270;
                     break;
@@ -359,32 +350,114 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-
-        if (camera != null)
-            stopCamera();
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
 
-        if (camera == null) {
-            if (Build.VERSION.SDK_INT >= 23) {
-                requestCameraPermission();
-            } else {
-                startCamera(Camera.CameraInfo.CAMERA_FACING_FRONT);
-            }
+        if (Build.VERSION.SDK_INT >= 23) {
+            requestCameraPermission();
+        } else {
+            startCamera();
+        }
+
+        if (isSDKRunning && !asyncDetector.isRunning()) {
+            asyncDetector.start();
+        }
+
+        resetFPS();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (asyncDetector != null && asyncDetector.isRunning()) {
+            asyncDetector.stop();
+        }
+
+        stopCamera();
+    }
+
+    void resetFPS() {
+        lastCameraFPSResetTime = lastSDKFPSResetTime = SystemClock.elapsedRealtime();
+        numberCameraFramesReceived = numberSDKFramesReceived = 0;
+    }
+
+    @Override
+    public void onImageResults(List<Face> faces, Frame image, float timeStamp) {
+        //statusTextView.setText(String.format("Most recent time stamp: %.4f",timeStamp));
+        if (timeStamp < lastReceivedTimestamp)
+            throw new RuntimeException("Got a timestamp out of order!");
+        lastReceivedTimestamp = timeStamp;
+        Log.e("MainActivity", String.valueOf(timeStamp));
+
+        if (faces == null)
+            return;
+        if (faces.size() == 0)
+            return;
+
+        boolean desiredState = true;
+        float joy, anger, disgust;
+        for (int i = 0 ; i < faces.size() ; i++) {
+            Face face = faces.get(i);
+            joy = face.emotions.getJoy(); if (joy < 90) desiredState = false;
+            tvJoy.setText("Joy: " + String.valueOf((int) joy) + " %");
+            anger = face.emotions.getAnger();
+            tvAnger.setText("Anger: " + String.valueOf((int) anger) + " %");
+            disgust = face.emotions.getDisgust();
+            tvDisgust.setText("Disgust: " + String.valueOf((int) disgust) + " %");
+        }
+
+        numberSDKFramesReceived += 1;
+        if(numberSDKFramesReceived % 100 == 0) {
+            Toast.makeText(this, "Frames received: " + numberSDKFramesReceived,
+                    Toast.LENGTH_SHORT).show();
+        }
+
+        if(desiredState){
+            asyncDetector.stop();
+            cameraView.takePhoto(picture, checkboxFlash.isChecked());
         }
     }
 
-    public int getCurrentCameraId() {
-        return currentCameraId;
+    @Override
+    public void onDetectorStarted() {
+        /*Toast.makeText(this, "Detector started",
+                Toast.LENGTH_SHORT).show();*/
     }
 
-    public void setCurrentCameraId(int currentCameraId) {
-        this.currentCameraId = currentCameraId;
+    @Override
+    public void onCameraFrameAvailable(byte[] frame, int width, int height, Frame.ROTATE rotation) {
+        numberCameraFramesReceived += 1;
+        //cameraFPS.setText(String.format("CAM: %.3f", 1000f * (float) numberCameraFramesReceived / (SystemClock.elapsedRealtime() - lastCameraFPSResetTime)));
+        Log.d("oncameraframeavailable", "abc");
+        float timestamp = 0;
+        long currentTime = SystemClock.elapsedRealtime();
+        if (firstFrameTime == -1) {
+            firstFrameTime = currentTime;
+        } else {
+            timestamp = (currentTime - firstFrameTime) / 1000f;
+        }
+
+        if (timestamp > (lastTimestamp + epsilon)) {
+            lastTimestamp = timestamp;
+            asyncDetector.process(createFrameFromData(frame,width,height,rotation),timestamp);
+        }
     }
 
+    @Override
+    public void onCameraStarted(boolean success, Throwable error) {
+        /*Toast.makeText(this, "Camera started",
+                Toast.LENGTH_SHORT).show();*/
+    }
+
+    @Override
+    public void onSurfaceViewSizeChanged() {
+        asyncDetector.reset();
+    }
+
+    static Frame createFrameFromData(byte[] frameData, int width, int height, Frame.ROTATE rotation) {
+        Frame.ByteArrayFrame frame = new Frame.ByteArrayFrame(frameData, width, height, Frame.COLOR_FORMAT.YUV_NV21);
+        frame.setTargetRotation(rotation);
+        return frame;
+    }
 }

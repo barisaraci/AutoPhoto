@@ -11,5 +11,8 @@
     <color name="colorBlack">#000000</color>
     <color name="colorBlue">#688DD1</color>
     <color name="colorPink">#EF6D6D</color>
-    <color name="colorPurple">#530e33</color>
+    <color name="colorPurple">#530E33</color>
+
+    <color name="colorButton_inactive">#88f0f0f0</color>
+    <color name="colorButton_active">#f0f0f0</color>
 </resources>

@@ -2,10 +2,10 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true">
         <bitmap android:src="@drawable/flip"
-            android:tint="@color/colorLight" />
+            android:tint="@color/colorButton_active" />
     </item>
     <item>
         <bitmap android:src="@drawable/flip"
-            android:tint="@color/colorDark" />
+            android:tint="@color/colorButton_inactive" />
     </item>
 </selector>

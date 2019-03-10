@@ -6,6 +6,6 @@
     </item>
     <item>
         <bitmap android:src="@drawable/flash"
-            android:tint="@color/colorDark" />
+            android:tint="@color/colorButton_inactive" />
     </item>
 </selector>
