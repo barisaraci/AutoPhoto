@@ -336,6 +336,7 @@ public class MainActivity extends AppCompatActivity {
         if (asyncDetector != null && asyncDetector.isRunning()) {
             asyncDetector.stop();
             tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");
+            checkboxEmotion.setChecked(false);
         }
 
         cameraView.stopCamera();
