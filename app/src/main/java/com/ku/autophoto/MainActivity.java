@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private CheckBox checkboxFlash;
     private CameraView cameraView;
+    private ImageButton saveButton;
 
     private static final int TARGET_WIDTH = 768;
     private static final int TARGET_HEIGHT = 1024;
@@ -94,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements
 
         checkboxFlash = findViewById(R.id.checkbox_flash);
 
-        ImageButton saveButton = findViewById(R.id.button_snap);
+        saveButton = findViewById(R.id.button_snap);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -129,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements
                 if (isSDKRunning) {
                     isSDKRunning = false;
                     asyncDetector.stop();
+                    tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");
                 } else {
                     isSDKRunning = true;
                     asyncDetector.start();
@@ -274,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements
         int rotationAngle = getCameraPhotoOrientation(this, Uri.fromFile(new File(photoPath)), photoPath);
 
         Matrix matrix = new Matrix();
-        matrix.postRotate(rotationAngle, (float) bm.getWidth() / 2, (float) bm.getHeight() / 2);
+        matrix.postRotate(getCameraRotation(), (float) bm.getWidth() / 2, (float) bm.getHeight() / 2);
         Bitmap finalBitmap = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix, true);
         try {
             FileOutputStream fos = new FileOutputStream(photoPath);
@@ -287,28 +289,26 @@ public class MainActivity extends AppCompatActivity implements
         bm.recycle();
     }
 
+    private int getCameraRotation(){
+       return cameraView.getCameraRotation();
+    }
+
     private int getCameraPhotoOrientation(Context context, Uri imageUri, String imagePath){
         int rotate = 0;
         try {
             context.getContentResolver().notifyChange(imageUri, null);
             File imageFile = new File(imagePath);
             ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
-            int orientation = exif.getAttributeInt(
-                    ExifInterface.TAG_ORIENTATION,
-                    ExifInterface.ORIENTATION_UNDEFINED);
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
             switch (orientation) {
-                case ExifInterface.ORIENTATION_NORMAL:
-                    //rotate = 0;
                 case ExifInterface.ORIENTATION_ROTATE_270:
-                    rotate = 270;
-                    break;
+                    return 270;
                 case ExifInterface.ORIENTATION_ROTATE_180:
-                    rotate = 180;
-                    break;
+                    return 180;
                 case ExifInterface.ORIENTATION_ROTATE_90:
-                    rotate = 90;
-                    break;
+                    return 90;
             }
+            Log.d("try", "getCameraPhotoOrientation: " + orientation);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -372,6 +372,7 @@ public class MainActivity extends AppCompatActivity implements
 
         if (asyncDetector != null && asyncDetector.isRunning()) {
             asyncDetector.stop();
+            tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");
         }
 
         stopCamera();
@@ -400,11 +401,11 @@ public class MainActivity extends AppCompatActivity implements
         for (int i = 0 ; i < faces.size() ; i++) {
             Face face = faces.get(i);
             joy = face.emotions.getJoy(); if (joy < 90) desiredState = false;
-            tvJoy.setText("Joy: " + String.valueOf((int) joy) + " %");
+            tvJoy.setText(String.valueOf((int) joy));
             anger = face.emotions.getAnger();
-            tvAnger.setText("Anger: " + String.valueOf((int) anger) + " %");
+            tvAnger.setText(String.valueOf((int) anger));
             disgust = face.emotions.getDisgust();
-            tvDisgust.setText("Disgust: " + String.valueOf((int) disgust) + " %");
+            tvDisgust.setText(String.valueOf((int) disgust));
         }
 
         numberSDKFramesReceived += 1;
@@ -416,6 +417,10 @@ public class MainActivity extends AppCompatActivity implements
         if(desiredState){
             asyncDetector.stop();
             cameraView.takePhoto(picture, checkboxFlash.isChecked());
+            saveButton.setPressed(true);
+            saveButton.invalidate();
+            saveButton.setPressed(false);
+            saveButton.invalidate();
         }
     }
 

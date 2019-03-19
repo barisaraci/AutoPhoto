@@ -14,5 +14,8 @@
     <color name="colorPurple">#530E33</color>
 
     <color name="colorButton_inactive">#88f0f0f0</color>
-    <color name="colorButton_active">#f0f0f0</color>
+    <color name="colorButton_active">#ddf0f0f0</color>
+    <color name="colorBar">#202a30</color>
+    <color name="colorGradient_light">#1e3b49</color>
+    <color name="colorGradient_dark">#102027</color>
 </resources>

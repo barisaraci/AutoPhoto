@@ -7,12 +7,12 @@
     android:background="#bf360c"
     tools:context=".MainActivity">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/linearLayout2"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@drawable/gradient"
-        android:orientation="horizontal"
+        android:background="@color/colorBar"
+        android:padding="15dp"
         app:layout_constraintBottom_toTopOf="@+id/camera_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,46 +20,50 @@
 
         <TextView
             android:id="@+id/tv_Joy"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_weight="1"
+            android:layout_width="80dp"
+            android:layout_height="60dp"
+            android:drawableTop="@drawable/happy"
             android:fontFamily="sans-serif"
             android:maxLines="1"
-            android:text="Joy"
             android:textAlignment="center"
             android:textColor="@color/colorWhite"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintBaseline_toBaselineOf="@+id/tv_Anger"
+            app:layout_constraintEnd_toStartOf="@+id/tv_Anger"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
             android:id="@+id/tv_Anger"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_weight="1"
+            android:layout_width="80dp"
+            android:layout_height="60dp"
+            android:drawableTop="@drawable/anger"
             android:fontFamily="sans-serif"
             android:maxLines="1"
-            android:text="Anger"
             android:textAlignment="center"
             android:textColor="@color/colorWhite"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/tv_Disgust"
+            app:layout_constraintStart_toEndOf="@+id/tv_Joy"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tv_Disgust"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_weight="1"
+            android:layout_width="80dp"
+            android:layout_height="60dp"
+            android:drawableTop="@drawable/disgust"
             android:fontFamily="sans-serif"
             android:maxLines="1"
-            android:text="Disgust"
             android:textAlignment="center"
             android:textColor="@color/colorWhite"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-    </LinearLayout>
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintBaseline_toBaselineOf="@+id/tv_Anger"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/tv_Anger" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.ku.autophoto.CameraView
         android:id="@+id/camera_view"
@@ -67,41 +71,41 @@
         android:layout_height="wrap_content"
         android:keepScreenOn="true"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio=""
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
 
     <CheckBox
         android:id="@+id/checkbox_emotion"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
         android:background="@drawable/selector_button_emotion"
         android:button="@android:color/transparent"
-        app:layout_constraintBottom_toTopOf="@+id/camera_view"
-        app:layout_constraintEnd_toEndOf="@+id/linearLayout2"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/camera_view" />
+
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottom_bar"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@drawable/gradient_reversed"
+        android:background="@color/colorBar"
+        android:padding="15dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/camera_view">
 
         <ImageButton
             android:id="@+id/button_flip"
             android:layout_width="0dp"
-            android:layout_height="30dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="20dp"
             android:layout_marginEnd="40dp"
+            android:layout_marginBottom="20dp"
             android:background="@drawable/selector_button_flip"
-            android:padding="5dp"
-            android:scaleType="centerInside"
             app:layout_constraintBottom_toBottomOf="@+id/button_snap"
             app:layout_constraintDimensionRatio="h,100:135"
             app:layout_constraintEnd_toStartOf="@+id/button_snap"
@@ -111,8 +115,6 @@
             android:id="@+id/button_snap"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
             android:background="@drawable/selector_button_snap"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="1"
@@ -123,8 +125,10 @@
         <CheckBox
             android:id="@+id/checkbox_flash"
             android:layout_width="0dp"
-            android:layout_height="30dp"
+            android:layout_height="0dp"
             android:layout_marginStart="40dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
             android:background="@drawable/selector_checkbox_flash"
             android:button="@android:color/transparent"
             app:layout_constraintBottom_toBottomOf="@+id/button_snap"
