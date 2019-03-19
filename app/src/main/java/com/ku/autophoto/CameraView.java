@@ -68,8 +68,8 @@ public class CameraView extends FrameLayout implements CameraCore.OnCameraCoreEv
                     width = measureWidth;
                     height = measureHeight;
                 } else {
-                    float viewAspectRatio = (float)measureWidth/measureHeight;
-                    float cameraPreviewAspectRatio = (float) previewWidth/previewHeight;
+                    float viewAspectRatio = (float) measureWidth / measureHeight;
+                    float cameraPreviewAspectRatio = (float) previewWidth / previewHeight;
 
                     if (cameraPreviewAspectRatio > viewAspectRatio) {
                         width = measureWidth;

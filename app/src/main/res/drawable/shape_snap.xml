@@ -10,7 +10,7 @@
             <solid android:color="@android:color/transparent" />
             <stroke
                 android:width="6dp"
-                android:color="@color/colorButton_active"/>
+                android:color="@color/colorButton_inactive"/>
         </shape>
     </item>
 </layer-list>
