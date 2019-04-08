@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_crop"
+        android:enabled="true"
+        android:icon="@drawable/selector_crop"
+        android:title="@string/crop"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_effect"
+        android:enabled="true"
+        android:icon="@drawable/selector_effect"
+        android:title="@string/effect"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_brightness"
+        android:enabled="true"
+        android:icon="@drawable/selector_brightness"
+        android:title="@string/brightness"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_adjust"
+        android:enabled="true"
+        android:icon="@drawable/selector_adjust"
+        android:title="@string/adjust"
+        app:showAsAction="always" />
+
+</menu>

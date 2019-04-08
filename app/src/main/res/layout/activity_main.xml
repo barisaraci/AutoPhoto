@@ -114,4 +114,18 @@
         app:layout_constraintStart_toEndOf="@+id/checkbox_flash"
         app:layout_constraintTop_toTopOf="@+id/checkbox_flash" />
 
+    <TextView
+        android:id="@+id/text_num_people"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="30dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/colorWhite"
+        android:maxLines="1"
+        android:text="X"
+        app:layout_constraintBottom_toBottomOf="@+id/button_flip"
+        app:layout_constraintDimensionRatio="h,1:1"
+        app:layout_constraintEnd_toStartOf="@+id/button_flip"
+        app:layout_constraintTop_toTopOf="@+id/button_flip" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

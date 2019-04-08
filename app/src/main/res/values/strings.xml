@@ -2,4 +2,9 @@
     <string name="app_name">AutoPhoto</string>
 
     <string name="error_camera_permission">We need your permission to let you take a snap</string>
+
+    <string name="crop">Crop</string>
+    <string name="effect">Effect</string>
+    <string name="brightness">Brightness</string>
+    <string name="adjust">Adjust</string>
 </resources>

@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Context context;
     private ViewGroup layoutMain;
-    private TextView tvJoy, tvAnger, tvDisgust;
+    private TextView tvJoy, tvAnger, tvDisgust, tvNumPeople;
 
     private String photoPath = "";
 
@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 checkboxEmotion.setEnabled(false);
                 if (asyncDetector.isRunning()) {
                     asyncDetector.stop();
-                    tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");
+                    tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");tvNumPeople.setText("X");
                 } else {
                     asyncDetector.start();
                     tvAnger.setText("0");tvDisgust.setText("0");tvJoy.setText("0");
@@ -150,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
         tvJoy = findViewById(R.id.tv_Joy);
         tvAnger = findViewById(R.id.tv_Anger);
         tvDisgust = findViewById(R.id.tv_Disgust);
+        tvNumPeople = findViewById(R.id.text_num_people);
 
         initEmotionSDK();
         cameraView.startCamera(isCameraFront ? CameraCore.CameraType.CAMERA_FRONT : CameraCore.CameraType.CAMERA_BACK);
@@ -167,8 +168,11 @@ public class MainActivity extends AppCompatActivity {
 
                 if (faces == null)
                     return;
+
                 if (faces.size() == 0)
                     return;
+                else
+                    tvNumPeople.setText(faces.size());
 
                 boolean desiredState = true;
                 float joy, anger, disgust;
