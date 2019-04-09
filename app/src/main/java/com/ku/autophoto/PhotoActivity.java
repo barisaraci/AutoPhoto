@@ -10,11 +10,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
+
+import android.media.ThumbnailUtils;
 import android.media.effect.Effect;
 import android.media.effect.EffectContext;
 import android.media.effect.EffectFactory;
-import android.net.Uri;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
@@ -24,7 +24,6 @@ import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -36,7 +35,6 @@ import android.widget.TextView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.IntBuffer;
@@ -47,40 +45,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class PhotoActivity extends AppCompatActivity {
 
-    /*private Context context;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_photo);
-
-        context = this;
-        //initLayout();
-    }
-
-    private void initLayout() {
-        final ImageView cameraImage = findViewById(R.id.camera_image);
-        cameraImage.setImageURI(Uri.fromFile(new File(getIntent().getStringExtra("photoPath"))));
-
-        BitmapDrawable drawable = (BitmapDrawable) cameraImage.getDrawable();
-        Bitmap originalBitmap = drawable.getBitmap();
-
-        Bitmap blurredBitmap = BlurBuilder.blur(context, originalBitmap, 0.1f, 25f);
-        final ImageView backgroundImage = findViewById(R.id.background_image);
-        backgroundImage.setImageBitmap(blurredBitmap);
-
-        RelativeLayout layoutBackButton = findViewById(R.id.layout_back);
-        layoutBackButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-                overridePendingTransition(R.anim.anim_open_right, R.anim.anim_close_right);
-            }
-        });
-    }*/
-
     private Context context;
-    private ImageView imagePreview;
     private ViewGroup layoutMain;
     private ViewGroup layoutCrop, layoutEffect, layoutBrightness, layoutAdjust;
     private BottomNavigationViewEx bottomNavigationView;
@@ -98,7 +63,7 @@ public class PhotoActivity extends AppCompatActivity {
     private TextureRenderer textureRenderer = new TextureRenderer();
     private int imageWidth, imageHeight;
     private boolean isVertical, isHorizontal, isEffectApplied, isDone;
-    private String effectNames[] = new String[] {"original", "summer", "rivvy", "cold", "dark", "lucid", "noir", "americano"};
+    private String effectNames[] = new String[] {"original", "summer", "vivid", "cold", "dark", "lucid", "noir", "americano"};
 
     private static final int TARGET_WIDTH = 768;
     private static final int TARGET_HEIGHT = 1024;
@@ -116,7 +81,6 @@ public class PhotoActivity extends AppCompatActivity {
 
     private void initLayout() {
         layoutMain = (ViewGroup) getWindow().getDecorView().getRootView();
-        //imagePreview = findViewById(R.id.snap);
         layoutCrop = findViewById(R.id.layout_crop);
         layoutEffect = findViewById(R.id.layout_effect);
         layoutBrightness = findViewById(R.id.layout_brightness);
@@ -131,7 +95,7 @@ public class PhotoActivity extends AppCompatActivity {
             }
         });
 
-        /*RelativeLayout layoutForwardButton = findViewById(R.id.layout_forward);
+        RelativeLayout layoutForwardButton = findViewById(R.id.layout_forward);
         layoutForwardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -141,7 +105,7 @@ public class PhotoActivity extends AppCompatActivity {
                     effectView.requestRender();
                 }
             }
-        });*/
+        });
 
         tvBrightness = findViewById(R.id.text_brightness);
         tvContrast = findViewById(R.id.text_contrast);
@@ -400,7 +364,7 @@ public class PhotoActivity extends AppCompatActivity {
         });
         effectView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
-        final LinearLayout layoutEffectButtons = (LinearLayout) findViewById(R.id.layout_effect_buttons);
+        final LinearLayout layoutEffectButtons = findViewById(R.id.layout_effect_buttons);
         for (int i = 0; i < effectNames.length; i++) {
             final int n = i;
             final LinearLayout layoutEffectButton = new LinearLayout(context);
@@ -422,11 +386,12 @@ public class PhotoActivity extends AppCompatActivity {
             textEffect.setGravity(Gravity.CENTER);
             tvEffects.add(textEffect);
 
-            final ImageButton effectButton = new ImageButton(context);
+            final ImageView effectButton = new ImageView(context);
             effectButton.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
             effectButton.setAdjustViewBounds(true);
             effectButton.setBackground(ContextCompat.getDrawable(context, android.R.drawable.dialog_holo_light_frame));
             effectButton.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.apply_effect));
+            //effectButton.setImageBitmap(ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(getIntent().getStringExtra("photoPath")), 64, 64);
             effectButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -439,7 +404,7 @@ public class PhotoActivity extends AppCompatActivity {
                         applyFullEffect(0, 0, 0, 0, 0, 0);
                     }
                     else if (n == 1) applyFullEffect(20, 32, 20, 40, 16, 14); // summer
-                    else if (n == 2) applyFullEffect(30, 40, 15, 16, 8, -10); // rivvy
+                    else if (n == 2) applyFullEffect(30, 40, 15, 16, 8, -10); // vivid
                     else if (n == 3) applyFullEffect(56, 36, 12, 36, -64, -22); // cold
                     else if (n == 4) applyFullEffect(-44, 6, 0, 0, -28, -32); // dark
                     else if (n == 5) applyFullEffect(-32, 100, 44, 100, 72, -56); // lucid
@@ -460,7 +425,7 @@ public class PhotoActivity extends AppCompatActivity {
 
     private void resetTvEffects() {
         for (TextView tvEffect : tvEffects) {
-            tvEffect.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+            tvEffect.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
             tvEffect.setTextColor(getResources().getColor(R.color.colorDark));
         }
     }
@@ -552,8 +517,11 @@ public class PhotoActivity extends AppCompatActivity {
 
         bitmap.recycle();
         isDone = false;
-        /*Intent intent = new Intent(context, SnapConfirmationActivity.class);
-        startActivity(intent);*/
+
+        Intent intent = new Intent(context, PhotoConfirmActivity.class);
+        intent.putExtra("photoPath", getIntent().getStringExtra("photoPath"));
+        startActivity(intent);
+        overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
     }
 
     public Bitmap takeScreenshot(GL10 mGL) {
@@ -592,18 +560,11 @@ public class PhotoActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-
-        /*if (SnapActivity.isProcessDone())
-            finish();*/
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        /*if (!SnapActivity.getPhotoPath().equalsIgnoreCase("") && !SnapActivity.isProcessDone()) {
-            new File(SnapActivity.getPhotoPath()).delete();
-        }*/
     }
 
 }

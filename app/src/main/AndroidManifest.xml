@@ -13,30 +13,41 @@
     <uses-feature android:name="android.hardware.camera" />
 
     <application
-        tools:replace="android:label"
         android:allowBackup="true"
+        android:configChanges="keyboardHidden|orientation|screenSize"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:configChanges="keyboardHidden|orientation|screenSize"
         android:screenOrientation="portrait"
-        android:theme="@style/AppTheme.Fullscreen">
-        <uses-library android:name ="org.apache.http.legacy" android:required ="false"/>
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme.Fullscreen"
+        tools:replace="android:label">
+
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
+
         <provider
-            android:name="com.ku.autophoto.PhotoProvider"
+            android:name=".PhotoProvider"
             android:authorities="com.ku.autophoto.PhotoProvider"
             android:exported="false"
             android:grantUriPermissions="true" />
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".PhotoActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.Fullscreen" />
+        <activity
+            android:name=".PhotoConfirmActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
