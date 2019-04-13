@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorBlack"
-    tools:context=".MainActivity">
+    tools:context=".activities.MainActivity">
 
     <TextView
         android:id="@+id/tv_Joy"
@@ -53,7 +53,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/tv_Anger" />
 
-    <com.ku.autophoto.CameraView
+    <com.ku.autophoto.utility_camera.CameraView
         android:id="@+id/camera_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

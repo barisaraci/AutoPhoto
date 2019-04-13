@@ -1,4 +1,4 @@
-package com.ku.autophoto;
+package com.ku.autophoto.utility_camera;
 
 import android.content.Context;
 import android.hardware.Camera;
@@ -18,15 +18,15 @@ import com.affectiva.android.affdex.sdk.Frame;
  */
 public class CameraView extends FrameLayout implements CameraCore.OnCameraCoreEventListener {
 
-    interface OnCameraViewEventListener {
+    public interface OnCameraViewEventListener {
         void onCameraFrameAvailable(byte[] frame, int width, int height, Frame.ROTATE rotation);
         void onCameraStarted(boolean success, Throwable error);
         void onSurfaceViewSizeChanged();
     }
 
-    private SurfaceView surfaceView;
-    private CameraCore cameraCore;
-    private OnCameraViewEventListener listener;
+    public SurfaceView surfaceView;
+    public CameraCore cameraCore;
+    public OnCameraViewEventListener listener;
 
     private int previewHeight = 0;
     private int previewWidth = 0;

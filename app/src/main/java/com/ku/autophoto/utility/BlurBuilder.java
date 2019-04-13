@@ -1,4 +1,4 @@
-package com.ku.autophoto;
+package com.ku.autophoto.utility;
 
 import android.content.Context;
 import android.graphics.Bitmap;

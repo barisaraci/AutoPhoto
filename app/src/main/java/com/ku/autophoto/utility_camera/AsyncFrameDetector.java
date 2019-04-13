@@ -1,4 +1,4 @@
-package com.ku.autophoto;
+package com.ku.autophoto.utility_camera;
 
 import android.content.Context;
 import android.os.Handler;

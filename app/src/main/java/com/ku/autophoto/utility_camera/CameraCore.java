@@ -1,4 +1,4 @@
-package com.ku.autophoto;
+package com.ku.autophoto.utility_camera;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
@@ -27,9 +27,9 @@ import java.util.List;
  * at the start of its host Activity (which should happen as long as the developer instantiates CameraDetector at
  * the start of its host Activity) (e.g. in onCreate()).
  */
-class CameraCore extends OrientationEventListener implements SurfaceHolder.Callback, Camera.PreviewCallback {
+public class CameraCore extends OrientationEventListener implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
-    enum CameraType {
+    public enum CameraType {
         CAMERA_BACK, CAMERA_FRONT
     }
 
@@ -45,29 +45,29 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
         STARTED //Camera is ready to use
     }
 
-    private OnCameraCoreEventListener listener = null;
+    public OnCameraCoreEventListener listener = null;
 
-    private final static float TARGET_FRAME_RATE = 30; // Specified at 30 fps on 3/18/2014
-    private final static int PREVIEW_IMAGE_FORMAT = ImageFormat.NV21; // NV21 is the default, but this line here in case want to change.
-    private final static String LOG_TAG = "CameraCore";
+    public final static float TARGET_FRAME_RATE = 30; // Specified at 30 fps on 3/18/2014
+    public final static int PREVIEW_IMAGE_FORMAT = ImageFormat.NV21; // NV21 is the default, but this line here in case want to change.
+    public final static String LOG_TAG = "CameraCore";
 
     //Surface and Preview members
-    private SurfaceHolder holder;
-    private boolean isPreviewing = false;
-    private boolean isSurfaceCreated = false;
+    public SurfaceHolder holder;
+    public boolean isPreviewing = false;
+    public boolean isSurfaceCreated = false;
 
     //Rotation-related members
-    private Display defaultDisplay;
-    private Frame.ROTATE frameRotation;
-    private int displayRotation;
+    public Display defaultDisplay;
+    public Frame.ROTATE frameRotation;
+    public int displayRotation;
 
     //Camera-related members
-    private CameraState cameraState = CameraState.STOPPED;
-    private final CameraWrapper cameraWrapper;
-    private CameraFacade cameraFacade;
-    private CameraCreationThread cameraThread;
-    private Context context;
-    private String photoPath = "";
+    public CameraState cameraState = CameraState.STOPPED;
+    public final CameraWrapper cameraWrapper;
+    public CameraFacade cameraFacade;
+    public CameraCreationThread cameraThread;
+    public Context context;
+    public String photoPath = "";
 
     MainThreadHandler mHandler;
 
@@ -120,7 +120,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
     /*
         "Called" by background thread when Camera creation has finished. (This method runs on the main thread)
      */
-    private void cameraStarted() {
+    public void cameraStarted() {
         Log.e(LOG_TAG,"cameraStarted");
         if (cameraState == CameraState.CREATING) {
             synchronized (cameraWrapper) {
@@ -152,7 +152,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
         Starts camera preview.
         Method should only be called when state is CameraState.STARTED
      */
-    private void startPreviewing(SurfaceHolder holder) {
+    public void startPreviewing(SurfaceHolder holder) {
         Log.e(LOG_TAG, "startPreviewing");
         try {
             cameraWrapper.camera.setPreviewDisplay(holder);
@@ -185,7 +185,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
         Stops camera preview.
         Method should only be called when state is CameraState.STARTED
      */
-    private void stopPreviewing() {
+    public void stopPreviewing() {
         Log.e(LOG_TAG, "stopPreviewing");
         if (isPreviewing) {
             cameraWrapper.camera.stopPreview();
@@ -232,7 +232,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
         cameraWrapper.camera.takePicture(null, null, picture);
     }
 
-    private boolean isFlashAvailable(){
+    public boolean isFlashAvailable(){
         List<String> flashModes = cameraWrapper.camera.getParameters().getSupportedFlashModes();
         if(flashModes == null) return false;
 
@@ -298,7 +298,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
         camera.addCallbackBuffer(data);
     }
 
-    private void setupPreviewWithCallbackBuffers() {
+    public void setupPreviewWithCallbackBuffers() {
         // calculate the size for the callback buffers
         Camera.Parameters params = cameraWrapper.camera.getParameters();
         int previewFormat = params.getPreviewFormat();
@@ -337,7 +337,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
 
     // Make the camera image show in the same orientation as the display.
     // This code is partially based on sample code at http://developer.android.com/reference/android/hardware/Camera.html
-    private void setCameraDisplayOrientation() {
+    public void setCameraDisplayOrientation() {
         CameraInfo info = new CameraInfo();
         cameraFacade.getCameraInfo(cameraWrapper.cameraId, info);
 
@@ -385,7 +385,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
         }
     }
 
-    private void computeFrameRotation(int rotation) {
+    public void computeFrameRotation(int rotation) {
         switch(rotation) {
             case 0:
                 frameRotation = Frame.ROTATE.NO_ROTATION;
@@ -407,7 +407,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
     /**
      * A Facade  class to wrap around the static methods of Android's Camera API
      */
-    private class CameraFacade {
+    public class CameraFacade {
 
         void acquireCamera(CameraWrapper cameraWrapper) throws IllegalStateException {
             if (cameraWrapper.cameraType == null) {
@@ -463,7 +463,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
      * This class is also used as a synchronization lock and thus serves to ensure both the background and foreground
      * thread have access to the latest data regarding the camera and its parameters.
      */
-    private class CameraWrapper {
+    public class CameraWrapper {
         Camera camera = null;
         Throwable error = null;
         CameraType cameraType;
@@ -512,7 +512,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
             }
         }
 
-        private void initCameraParams(CameraWrapper cameraWrapper) {
+        public void initCameraParams(CameraWrapper cameraWrapper) {
             Camera.Parameters cameraParams = cameraWrapper.camera.getParameters();
             // NV21 is the default, but this line here in case want to change.
             cameraParams.setPreviewFormat(PREVIEW_IMAGE_FORMAT);
@@ -526,7 +526,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
         }
 
         //Sets camera frame to be as close to TARGET_FRAME_RATE as possible
-        private void setOptimalPreviewFrameRate(Camera.Parameters cameraParams) {
+        public void setOptimalPreviewFrameRate(Camera.Parameters cameraParams) {
             int targetHiMS = (int) (1000 * TARGET_FRAME_RATE);
             List<int[]> ranges = cameraParams.getSupportedPreviewFpsRange();
             if (1 == ranges.size()) {
@@ -551,7 +551,7 @@ class CameraCore extends OrientationEventListener implements SurfaceHolder.Callb
 
         // Finds the closest height - simple algo. NOTE: only height is used as a target, width is ignored!
         //TODO: this could benefit from revision - for example, it chooses a square image on the Nexus 7, which looks bad
-        private void setOptimalPreviewSize(Camera.Parameters cameraParams, int targetWidth, int targetHeight) {
+        public void setOptimalPreviewSize(Camera.Parameters cameraParams, int targetWidth, int targetHeight) {
             List<Size> supportedPreviewSizes = cameraParams.getSupportedPreviewSizes();
             // according to Android bug #6271, the emulator sometimes returns null from getSupportedPreviewSizes,
             // although this shouldn't happen on a real device.

@@ -1,4 +1,4 @@
-package com.ku.autophoto;
+package com.ku.autophoto.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatSeekBar;
@@ -11,7 +11,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Typeface;
 
-import android.media.ThumbnailUtils;
 import android.media.effect.Effect;
 import android.media.effect.EffectContext;
 import android.media.effect.EffectFactory;
@@ -34,6 +33,9 @@ import android.widget.TextView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
+import com.ku.autophoto.utility.GLToolbox;
+import com.ku.autophoto.R;
+import com.ku.autophoto.utility.TextureRenderer;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,7 +45,7 @@ import java.util.ArrayList;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class PhotoActivity extends AppCompatActivity {
+public class FilterActivity extends AppCompatActivity {
 
     private Context context;
     private ViewGroup layoutMain;
@@ -71,7 +73,7 @@ public class PhotoActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_photo);
+        setContentView(R.layout.activity_filter);
 
         context = this;
 

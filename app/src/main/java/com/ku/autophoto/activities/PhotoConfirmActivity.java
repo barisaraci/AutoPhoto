@@ -1,4 +1,4 @@
-package com.ku.autophoto;
+package com.ku.autophoto.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -10,6 +10,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+
+import com.ku.autophoto.utility.BlurBuilder;
+import com.ku.autophoto.R;
 
 import java.io.File;
 

@@ -28,26 +28,36 @@
             android:required="false" />
 
         <provider
-            android:name=".PhotoProvider"
-            android:authorities="com.ku.autophoto.PhotoProvider"
+            android:name=".utility.PhotoProvider"
+            android:authorities="com.ku.autophoto.utility.PhotoProvider"
             android:exported="false"
             android:grantUriPermissions="true" />
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".PhotoActivity"
+            android:name=".activities.FilterActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.Fullscreen" />
+
         <activity
-            android:name=".PhotoConfirmActivity"
+            android:name=".activities.PhotoConfirmActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.Fullscreen" />
+
+        <activity
+            android:name=".activities.TrainingActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/app_name"
             android:screenOrientation="portrait"

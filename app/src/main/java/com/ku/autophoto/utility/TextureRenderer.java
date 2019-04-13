@@ -1,4 +1,4 @@
-package com.ku.autophoto;
+package com.ku.autophoto.utility;
 
 import android.opengl.GLES20;
 

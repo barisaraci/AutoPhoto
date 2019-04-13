@@ -1,4 +1,4 @@
-package com.ku.autophoto;
+package com.ku.autophoto.activities;
 
 import android.Manifest;
 import android.content.Context;
@@ -25,6 +25,11 @@ import android.widget.TextView;
 import com.affectiva.android.affdex.sdk.Frame;
 import com.affectiva.android.affdex.sdk.detector.Face;
 import com.google.android.material.snackbar.Snackbar;
+import com.ku.autophoto.utility_camera.AsyncFrameDetector;
+import com.ku.autophoto.utility_camera.CameraCore;
+import com.ku.autophoto.utility_camera.CameraView;
+import com.ku.autophoto.utility.PhotoProvider;
+import com.ku.autophoto.R;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -148,6 +153,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         tvJoy = findViewById(R.id.tv_Joy);
+        tvJoy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, TrainingActivity.class);
+                startActivity(intent);
+                overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
+            }
+        });
         tvAnger = findViewById(R.id.tv_Anger);
         tvDisgust = findViewById(R.id.tv_Disgust);
         tvNumPeople = findViewById(R.id.text_num_people);
@@ -226,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
             tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");
             checkboxEmotion.setChecked(false);
 
-            Intent intent = new Intent(context, PhotoActivity.class);
+            Intent intent = new Intent(context, FilterActivity.class);
             intent.putExtra("photoPath", photoPath);
             startActivity(intent);
             overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);

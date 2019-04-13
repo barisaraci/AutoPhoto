@@ -1,4 +1,4 @@
-package com.ku.autophoto;
+package com.ku.autophoto.utility;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
@@ -12,7 +12,7 @@ import androidx.annotation.Nullable;
 
 public class PhotoProvider extends ContentProvider {
 
-    public static final String CONTENT_PROVIDER_AUTHORITY = "com.ku.autophoto.PhotoProvider";
+    public static final String CONTENT_PROVIDER_AUTHORITY = "com.ku.autophoto.utility.PhotoProvider";
 
     @Override
     public boolean onCreate() {
