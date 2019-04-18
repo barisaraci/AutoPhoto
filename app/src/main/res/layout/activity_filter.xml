@@ -10,7 +10,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_widthPercent="100%"
-        app:layout_aspectRatio="75%" >
+        app:layout_aspectRatio="60%" >
 
         <android.opengl.GLSurfaceView
             android:id="@+id/effectsview"

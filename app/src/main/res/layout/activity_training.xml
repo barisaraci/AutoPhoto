@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:maxLines="1"
         android:text="Swipe the ones you like to right, others to left"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="16sp"
         android:textColor="@color/colorBlack"
         android:layout_marginTop="25dp"
         app:layout_constraintEnd_toEndOf="parent"

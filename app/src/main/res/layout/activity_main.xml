@@ -128,4 +128,18 @@
         app:layout_constraintEnd_toStartOf="@+id/button_flip"
         app:layout_constraintTop_toTopOf="@+id/button_flip" />
 
+    <TextView
+        android:id="@+id/text_countdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:text="Keep smiling"
+        android:textColor="@color/colorWhite"
+        android:textSize="35sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

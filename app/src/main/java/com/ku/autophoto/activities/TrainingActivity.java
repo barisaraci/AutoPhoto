@@ -6,6 +6,7 @@ import androidx.core.content.ContextCompat;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 import com.ku.autophoto.R;
 import com.ku.autophoto.utility.PhotoModal;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class TrainingActivity extends AppCompatActivity {
@@ -43,7 +45,10 @@ public class TrainingActivity extends AppCompatActivity {
 
         final RelativeLayout parentView = findViewById(R.id.layout_swipe);
 
-        initPhotos();
+        for (int i = 0; i < getIntent().getStringArrayExtra("photoPaths").length; i++) {
+            PhotoModal model = new PhotoModal();
+            photos.add(model);
+        }
 
         for (int i = 0; i < photos.size(); i++) {
 
@@ -57,8 +62,8 @@ public class TrainingActivity extends AppCompatActivity {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
             containerView.setLayoutParams(layoutParams);
 
-            containerView.setTag(i);
-            //userIMG.setBackgroundResource();
+            containerView.setTag(getIntent().getStringArrayExtra("photoPaths")[i]);
+            userIMG.setImageURI(Uri.fromFile(new File(getIntent().getStringArrayExtra("photoPaths")[i])));
 
             RelativeLayout.LayoutParams layoutTvParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 
@@ -168,9 +173,11 @@ public class TrainingActivity extends AppCompatActivity {
                             } else if (swipeStatus == 1) {
                                 Log.e("Event_Status :-> ", "UNLIKE");
                                 parentView.removeView(containerView);
+                                new File((String) containerView.getTag()).delete();
                             } else if (swipeStatus == 2) {
                                 Log.e("Event_Status :-> ", "Liked");
                                 parentView.removeView(containerView);
+                                new File((String) containerView.getTag()).delete();
                             }
                             break;
                         default:
@@ -183,35 +190,6 @@ public class TrainingActivity extends AppCompatActivity {
             parentView.addView(containerView);
         }
 
-    }
-
-    private void initPhotos() {
-        PhotoModal model = new PhotoModal();
-        photos.add(model);
-
-        PhotoModal model2 = new PhotoModal();
-        photos.add(model2);
-
-        PhotoModal model3 = new PhotoModal();
-        photos.add(model3);
-
-        PhotoModal model4 = new PhotoModal();
-        photos.add(model4);
-
-        PhotoModal model5 = new PhotoModal();
-        photos.add(model5);
-
-        PhotoModal model6 = new PhotoModal();
-        photos.add(model6);
-
-        PhotoModal model7 = new PhotoModal();
-        photos.add(model7);
-
-        PhotoModal model8 = new PhotoModal();
-        photos.add(model8);
-
-        PhotoModal model9 = new PhotoModal();
-        photos.add(model9);
     }
 
 }

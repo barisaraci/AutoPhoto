@@ -6,7 +6,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.media.ExifInterface;
 import android.net.Uri;
@@ -31,14 +34,17 @@ import com.ku.autophoto.utility_camera.CameraView;
 import com.ku.autophoto.utility.PhotoProvider;
 import com.ku.autophoto.R;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -47,9 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Context context;
     private ViewGroup layoutMain;
-    private TextView tvJoy, tvAnger, tvDisgust, tvNumPeople;
-
-    private String photoPath = "";
+    private TextView tvJoy, tvAnger, tvDisgust, tvNumPeople, tvCountdown;
 
     private AsyncFrameDetector asyncDetector;
 
@@ -64,6 +68,11 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton buttonSnap;
 
     private static final int MY_PERMISSIONS_REQUEST_SNAP = 100;
+
+    private String photoTrainingPath[];
+    private int trainingCount = 0;
+    private int trainingNumber = 6;
+    private boolean isTrainingActive = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                     tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");tvNumPeople.setText("X");
                 } else {
                     asyncDetector.start();
-                    tvAnger.setText("0");tvDisgust.setText("0");tvJoy.setText("0");
+                    tvAnger.setText("0");tvDisgust.setText("0");tvJoy.setText("0");tvNumPeople.setText("0");
                 }
                 new Handler().postDelayed(new Runnable() {
                     @Override
@@ -156,14 +165,19 @@ public class MainActivity extends AppCompatActivity {
         tvJoy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(context, TrainingActivity.class);
-                startActivity(intent);
-                overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
+                isTrainingActive = true;
+                tvCountdown.setVisibility(View.VISIBLE);
+                if (!asyncDetector.isRunning()) {
+                    asyncDetector.start();
+                    tvAnger.setText("0");tvDisgust.setText("0");tvJoy.setText("0");
+                }
             }
         });
         tvAnger = findViewById(R.id.tv_Anger);
         tvDisgust = findViewById(R.id.tv_Disgust);
         tvNumPeople = findViewById(R.id.text_num_people);
+        tvCountdown = findViewById(R.id.text_countdown);
+        photoTrainingPath = new String[trainingNumber];
 
         initEmotionSDK();
         cameraView.startCamera(isCameraFront ? CameraCore.CameraType.CAMERA_FRONT : CameraCore.CameraType.CAMERA_BACK);
@@ -185,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
                 if (faces.size() == 0)
                     return;
                 else
-                    tvNumPeople.setText(faces.size());
+                    tvNumPeople.setText(String.valueOf(faces.size()));
 
                 boolean desiredState = true;
                 float joy, anger, disgust;
@@ -200,16 +214,36 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (desiredState) {
-                    asyncDetector.stop();
-                    buttonSnap.setEnabled(false);
-                    buttonSnap.setImageResource(R.drawable.shape_snap_selected);
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            buttonSnap.setImageResource(R.drawable.shape_snap);
-                            cameraView.takePhoto(picture, checkboxFlash.isChecked());
+                    if (isTrainingActive) {
+                        cameraView.takePhoto(picture, checkboxFlash.isChecked());
+                    } else {
+                        File photoFile = getOutputMediaFile();
+                        Bitmap bmp = getBitmapFromFrame(image);
+                        try {
+                            FileOutputStream fos = new FileOutputStream(photoFile);
+                            bmp.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+                            fos.flush();
+                            fos.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    },150);
+                        adjustAndSaveBitmap(photoFile.getPath(), true);
+                        closeAuto();
+                        Intent intent = new Intent(context, FilterActivity.class);
+                        intent.putExtra("photoPath", photoFile.getAbsolutePath());
+                        startActivity(intent);
+                        overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
+                        asyncDetector.stop();
+                        /*buttonSnap.setEnabled(false);
+                        buttonSnap.setImageResource(R.drawable.shape_snap_selected);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                buttonSnap.setImageResource(R.drawable.shape_snap);
+                                cameraView.takePhoto(picture, checkboxFlash.isChecked());
+                            }
+                        }, 150);*/
+                    }
                 }
             }
 
@@ -220,29 +254,118 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public static Bitmap getBitmapFromFrame(@NonNull final Frame frame) {
+        Bitmap bitmap;
+
+        if (frame instanceof Frame.BitmapFrame) {
+            bitmap = ((Frame.BitmapFrame) frame).getBitmap();
+        } else { //frame is ByteArrayFrame
+            switch (frame.getColorFormat()) {
+                case RGBA:
+                    bitmap = getBitmapFromRGBFrame(frame);
+                    break;
+                case YUV_NV21:
+                    bitmap = getBitmapFromYuvFrame(frame);
+                    break;
+                case UNKNOWN_TYPE:
+                default:
+                    Log.e("AutoPhoto", "Unable to get bitmap from unknown frame type");
+                    return null;
+            }
+        }
+
+        if (bitmap == null || frame.getTargetRotation().toDouble() == 0.0) {
+            return bitmap;
+        } else {
+            return rotateBitmap(bitmap, (float) frame.getTargetRotation().toDouble());
+        }
+    }
+
+    public static Bitmap getBitmapFromRGBFrame(@NonNull final Frame frame) {
+        byte[] pixels = ((Frame.ByteArrayFrame) frame).getByteArray();
+        Bitmap bitmap = Bitmap.createBitmap(frame.getWidth(), frame.getHeight(), Bitmap.Config.ARGB_8888);
+        bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(pixels));
+        return bitmap;
+    }
+
+    public static Bitmap getBitmapFromYuvFrame(@NonNull final Frame frame) {
+        byte[] pixels = ((Frame.ByteArrayFrame) frame).getByteArray();
+        YuvImage yuvImage = new YuvImage(pixels, ImageFormat.NV21, frame.getWidth(), frame.getHeight(), null);
+        return convertYuvImageToBitmap(yuvImage);
+    }
+
+    public static Bitmap convertYuvImageToBitmap(@NonNull final YuvImage yuvImage) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        yuvImage.compressToJpeg(new Rect(0, 0, yuvImage.getWidth(), yuvImage.getHeight()), 100, out);
+        byte[] imageBytes = out.toByteArray();
+        try {
+            out.close();
+        } catch (IOException e) {
+            Log.e("AutoPhoto", "Exception while closing output stream", e);
+        }
+        return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+    }
+
+    public static Bitmap rotateBitmap(@NonNull final Bitmap source, final float angle) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
+
     private Camera.PictureCallback picture = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            File photoFile = getOutputMediaFile();
+            if (isTrainingActive) {
+                File photoFile = getOutputMediaFile();
+                photoTrainingPath[trainingCount] = photoFile.getAbsolutePath();
 
-            try {
-                FileOutputStream fos = new FileOutputStream(photoFile);
-                fos.write(data);
-                fos.close();
-            } catch (FileNotFoundException e) {
-                Log.e(context.getResources().getString(R.string.app_name), "File not found: " + e.getMessage());
-            } catch (IOException e) {
-                Log.e(context.getResources().getString(R.string.app_name), "Error accessing file: " + e.getMessage());
+                try {
+                    FileOutputStream fos = new FileOutputStream(photoFile);
+                    fos.write(data);
+                    fos.close();
+                } catch (FileNotFoundException e) {
+                    Log.e(context.getResources().getString(R.string.app_name), "File not found: " + e.getMessage());
+                } catch (IOException e) {
+                    Log.e(context.getResources().getString(R.string.app_name), "Error accessing file: " + e.getMessage());
+                }
+
+                adjustAndSaveBitmap(photoFile.getPath(), false);
+
+                if (trainingCount < trainingNumber - 1) {
+                    trainingCount++;
+                    tvCountdown.setText("Keep smiling (" + (trainingNumber - trainingCount) + ")");
+                    cameraView.takePhoto(picture, checkboxFlash.isChecked());
+                } else {
+                    isTrainingActive = false;
+                    tvCountdown.setVisibility(View.GONE);
+                    trainingNumber = 0;
+                    Intent intent = new Intent(context, TrainingActivity.class);
+                    intent.putExtra("photoPaths", photoTrainingPath);
+                    startActivity(intent);
+                    overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
+                }
+            } else {
+                File photoFile = getOutputMediaFile();
+
+                try {
+                    FileOutputStream fos = new FileOutputStream(photoFile);
+                    fos.write(data);
+                    fos.close();
+                } catch (FileNotFoundException e) {
+                    Log.e(context.getResources().getString(R.string.app_name), "File not found: " + e.getMessage());
+                } catch (IOException e) {
+                    Log.e(context.getResources().getString(R.string.app_name), "Error accessing file: " + e.getMessage());
+                }
+
+                adjustAndSaveBitmap(photoFile.getPath(), false);
+
+                closeAuto();
+
+                Intent intent = new Intent(context, FilterActivity.class);
+                intent.putExtra("photoPath", photoFile.getAbsolutePath());
+                startActivity(intent);
+                overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
             }
-
-            adjustAndSaveBitmap(photoFile.getPath());
-            tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");
-            checkboxEmotion.setChecked(false);
-
-            Intent intent = new Intent(context, FilterActivity.class);
-            intent.putExtra("photoPath", photoPath);
-            startActivity(intent);
-            overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
         }
     };
 
@@ -255,18 +378,28 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        photoPath = mediaStorageDir.getPath() + File.separator + "IMG_"+ timeStamp + ".jpg";
-        File mediaFile = new File(mediaStorageDir.getPath() + File.separator + "IMG_"+ timeStamp + ".jpg");
+        String path = mediaStorageDir.getPath() + File.separator + "IMG_"+ timeStamp + ".jpg";
+        File mediaFile = new File(path);
         return mediaFile;
     }
 
-    private void adjustAndSaveBitmap(String photoPath) {
+    private void adjustAndSaveBitmap(String photoPath, boolean isScreenshot) {
         Bitmap bm = BitmapFactory.decodeFile(photoPath);
         int rotationAngle = getCameraPhotoOrientation(this, PhotoProvider.getPhotoUri(new File(photoPath)), photoPath);
 
         Matrix matrix = new Matrix();
-        matrix.preScale(1, -1);
-        matrix.postRotate(rotationAngle + 270, (float) bm.getWidth() / 2, (float) bm.getHeight() / 2);
+        if (isCameraFront && !isScreenshot) {
+            matrix.preScale(1, -1);
+        } else if (isCameraFront && isScreenshot) {
+            matrix.preScale(-1, 1);
+        }
+        if (!isScreenshot) {
+            if (isCameraFront) {
+                matrix.postRotate(rotationAngle + 270, (float) bm.getWidth() / 2, (float) bm.getHeight() / 2);
+            } else {
+                matrix.postRotate(rotationAngle + 90, (float) bm.getWidth() / 2, (float) bm.getHeight() / 2);
+            }
+        }
         Bitmap finalBitmap = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix, true);
         try {
             FileOutputStream fos = new FileOutputStream(photoPath);
@@ -333,6 +466,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void closeAuto() {
+        tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");tvNumPeople.setText("X");
+        checkboxEmotion.setChecked(false);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -352,8 +490,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (asyncDetector != null && asyncDetector.isRunning()) {
             asyncDetector.stop();
-            tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");
-            checkboxEmotion.setChecked(false);
+            closeAuto();
         }
 
         cameraView.stopCamera();
