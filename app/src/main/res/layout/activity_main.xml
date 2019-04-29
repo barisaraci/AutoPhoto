@@ -7,51 +7,46 @@
     android:background="@color/colorBlack"
     tools:context=".activities.MainActivity">
 
-    <TextView
-        android:id="@+id/tv_Joy"
-        android:layout_width="80dp"
-        android:layout_height="60dp"
-        android:drawableTop="@drawable/happy"
-        android:fontFamily="sans-serif"
-        android:maxLines="1"
-        android:textAlignment="center"
-        android:textColor="@color/colorWhite"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintBaseline_toBaselineOf="@+id/tv_Anger"
-        app:layout_constraintEnd_toStartOf="@+id/tv_Anger"
+    <ImageView
+        android:id="@+id/smileicon"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/colorBlack"
+        android:src="@drawable/smile"
+        android:tint="@color/colorButton_active"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintDimensionRatio="1"
+        app:layout_constraintWidth_percent="0.1"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/tv_Anger"
-        android:layout_width="80dp"
-        android:layout_height="60dp"
-        android:drawableTop="@drawable/anger"
-        android:fontFamily="sans-serif"
-        android:maxLines="1"
-        android:textAlignment="center"
+        android:id="@+id/text_num_people"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="30dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@color/colorWhite"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginTop="15dp"
-        app:layout_constraintEnd_toStartOf="@+id/tv_Disgust"
-        app:layout_constraintStart_toEndOf="@+id/tv_Joy"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:maxLines="1"
+        android:layout_marginStart="10dp"
+        android:text="NO FACE"
+        android:layout_marginTop="10dp"
+        app:layout_constraintStart_toEndOf="@id/smileicon"
+        app:layout_constraintBottom_toBottomOf="@id/smileicon"/>
 
-    <TextView
-        android:id="@+id/tv_Disgust"
-        android:layout_width="80dp"
-        android:layout_height="60dp"
-        android:drawableTop="@drawable/disgust"
-        android:fontFamily="sans-serif"
-        android:maxLines="1"
-        android:textAlignment="center"
-        android:textColor="@color/colorWhite"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintBaseline_toBaselineOf="@+id/tv_Anger"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/tv_Anger" />
+    <ImageButton
+        android:id="@+id/button_train"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="26dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/selector_button_emotion"
+        android:button="@android:color/transparent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintDimensionRatio="1"
+        app:layout_constraintWidth_percent="0.11"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <com.ku.autophoto.utility_camera.CameraView
         android:id="@+id/camera_view"
@@ -68,7 +63,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="20dp"
-        android:layout_marginEnd="30dp"
+        android:layout_marginEnd="50dp"
         android:layout_marginBottom="20dp"
         android:background="@drawable/selector_button_flip"
         app:layout_constraintBottom_toBottomOf="@+id/button_snap"
@@ -92,7 +87,7 @@
         android:id="@+id/checkbox_flash"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="30dp"
+        android:layout_marginStart="55dp"
         android:layout_marginTop="20dp"
         android:layout_marginBottom="20dp"
         android:background="@drawable/selector_checkbox_flash"
@@ -101,32 +96,6 @@
         app:layout_constraintDimensionRatio="h,100:56"
         app:layout_constraintStart_toEndOf="@+id/button_snap"
         app:layout_constraintTop_toTopOf="@+id/button_snap" />
-
-    <CheckBox
-        android:id="@+id/checkbox_emotion"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="30dp"
-        android:background="@drawable/selector_button_emotion"
-        android:button="@android:color/transparent"
-        app:layout_constraintBottom_toBottomOf="@+id/checkbox_flash"
-        app:layout_constraintDimensionRatio="h,1:1"
-        app:layout_constraintStart_toEndOf="@+id/checkbox_flash"
-        app:layout_constraintTop_toTopOf="@+id/checkbox_flash" />
-
-    <TextView
-        android:id="@+id/text_num_people"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="30dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="@color/colorWhite"
-        android:maxLines="1"
-        android:text="X"
-        app:layout_constraintBottom_toBottomOf="@+id/button_flip"
-        app:layout_constraintDimensionRatio="h,1:1"
-        app:layout_constraintEnd_toStartOf="@+id/button_flip"
-        app:layout_constraintTop_toTopOf="@+id/button_flip" />
 
     <TextView
         android:id="@+id/text_countdown"

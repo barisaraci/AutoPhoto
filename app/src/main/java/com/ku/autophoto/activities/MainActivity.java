@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Context context;
     private ViewGroup layoutMain;
-    private TextView tvJoy, tvAnger, tvDisgust, tvNumPeople, tvCountdown;
+    private TextView tvNumPeople, tvCountdown;
 
     private AsyncFrameDetector asyncDetector;
 
@@ -63,9 +63,9 @@ public class MainActivity extends AppCompatActivity {
     private long firstFrameTime = -1;
     private float lastReceivedTimestamp = -1f;
 
-    private CheckBox checkboxFlash, checkboxEmotion;
+    private CheckBox checkboxFlash;
     private CameraView cameraView;
-    private ImageButton buttonSnap;
+    private ImageButton buttonSnap, buttonTrain;
 
     private static final int MY_PERMISSIONS_REQUEST_SNAP = 100;
 
@@ -140,47 +140,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        checkboxEmotion = findViewById(R.id.checkbox_emotion);
-        checkboxEmotion.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                checkboxEmotion.setEnabled(false);
-                if (asyncDetector.isRunning()) {
-                    asyncDetector.stop();
-                    tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");tvNumPeople.setText("X");
-                } else {
-                    asyncDetector.start();
-                    tvAnger.setText("0");tvDisgust.setText("0");tvJoy.setText("0");tvNumPeople.setText("0");
-                }
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        checkboxEmotion.setEnabled(true);
-                    }
-                },500);
-            }
-        });
-
-        tvJoy = findViewById(R.id.tv_Joy);
-        tvJoy.setOnClickListener(new View.OnClickListener() {
+        buttonTrain = findViewById(R.id.button_train);
+        buttonTrain.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 isTrainingActive = true;
                 tvCountdown.setVisibility(View.VISIBLE);
-                if (!asyncDetector.isRunning()) {
-                    asyncDetector.start();
-                    tvAnger.setText("0");tvDisgust.setText("0");tvJoy.setText("0");
-                }
             }
         });
-        tvAnger = findViewById(R.id.tv_Anger);
-        tvDisgust = findViewById(R.id.tv_Disgust);
+
         tvNumPeople = findViewById(R.id.text_num_people);
         tvCountdown = findViewById(R.id.text_countdown);
         photoTrainingPath = new String[trainingNumber];
 
         initEmotionSDK();
         cameraView.startCamera(isCameraFront ? CameraCore.CameraType.CAMERA_FRONT : CameraCore.CameraType.CAMERA_BACK);
+        /*if (!asyncDetector.isRunning())
+            asyncDetector.start();*/
     }
 
     private void initEmotionSDK() {
@@ -196,22 +172,35 @@ public class MainActivity extends AppCompatActivity {
                 if (faces == null)
                     return;
 
-                if (faces.size() == 0)
-                    return;
-                else
-                    tvNumPeople.setText(String.valueOf(faces.size()));
+                int state = 0;
 
+                if (faces.size() == 0) {
+                    state = 0;
+                    tvNumPeople.setText("NO FACE");
+                } else if (faces.size() == 1) {
+                    state = 1;
+                } else {
+                    state = 2;
+                }
+
+                int numSmiles = 0;
                 boolean desiredState = true;
-                float joy, anger, disgust;
+                float joy = 0;
                 for (int i = 0 ; i < faces.size() ; i++) {
                     Face face = faces.get(i);
-                    joy = face.emotions.getJoy(); if (joy < 90) desiredState = false;
-                    tvJoy.setText(String.valueOf((int) joy));
-                    anger = face.emotions.getAnger();
-                    tvAnger.setText(String.valueOf((int) anger));
-                    disgust = face.emotions.getDisgust();
-                    tvDisgust.setText(String.valueOf((int) disgust));
+                    joy = face.emotions.getJoy();
+
+                    if (state == 1)
+                        tvNumPeople.setText((int) joy + " %");
+
+                    if (joy < 90)
+                        desiredState = false;
+                    else
+                        numSmiles++;
                 }
+
+                if (state == 2)
+                    tvNumPeople.setText(numSmiles + " / " + faces.size());
 
                 if (desiredState) {
                     if (isTrainingActive) {
@@ -228,21 +217,11 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                         adjustAndSaveBitmap(photoFile.getPath(), true);
-                        closeAuto();
                         Intent intent = new Intent(context, FilterActivity.class);
                         intent.putExtra("photoPath", photoFile.getAbsolutePath());
                         startActivity(intent);
                         overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
                         asyncDetector.stop();
-                        /*buttonSnap.setEnabled(false);
-                        buttonSnap.setImageResource(R.drawable.shape_snap_selected);
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                buttonSnap.setImageResource(R.drawable.shape_snap);
-                                cameraView.takePhoto(picture, checkboxFlash.isChecked());
-                            }
-                        }, 150);*/
                     }
                 }
             }
@@ -359,8 +338,6 @@ public class MainActivity extends AppCompatActivity {
 
                 adjustAndSaveBitmap(photoFile.getPath(), false);
 
-                closeAuto();
-
                 Intent intent = new Intent(context, FilterActivity.class);
                 intent.putExtra("photoPath", photoFile.getAbsolutePath());
                 startActivity(intent);
@@ -466,11 +443,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void closeAuto() {
-        tvAnger.setText("");tvDisgust.setText("");tvJoy.setText("");tvNumPeople.setText("X");
-        checkboxEmotion.setChecked(false);
-    }
-
     @Override
     public void onResume() {
         super.onResume();
@@ -481,6 +453,10 @@ public class MainActivity extends AppCompatActivity {
             cameraView.startCamera(isCameraFront ? CameraCore.CameraType.CAMERA_FRONT : CameraCore.CameraType.CAMERA_BACK);
         }
 
+        /*if (asyncDetector != null && !asyncDetector.isRunning()) {
+            asyncDetector.start();
+        }*/
+
         buttonSnap.setEnabled(true);
     }
 
@@ -490,7 +466,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (asyncDetector != null && asyncDetector.isRunning()) {
             asyncDetector.stop();
-            closeAuto();
         }
 
         cameraView.stopCamera();
