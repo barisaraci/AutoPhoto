@@ -16,7 +16,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
@@ -41,6 +40,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -155,8 +155,6 @@ public class MainActivity extends AppCompatActivity {
 
         initEmotionSDK();
         cameraView.startCamera(isCameraFront ? CameraCore.CameraType.CAMERA_FRONT : CameraCore.CameraType.CAMERA_BACK);
-        /*if (!asyncDetector.isRunning())
-            asyncDetector.start();*/
     }
 
     private void initEmotionSDK() {
@@ -185,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
 
                 int numSmiles = 0;
                 boolean desiredState = true;
-                float joy = 0;
+                float joy;
                 for (int i = 0 ; i < faces.size() ; i++) {
                     Face face = faces.get(i);
                     joy = face.emotions.getJoy();
@@ -202,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                 if (state == 2)
                     tvNumPeople.setText(numSmiles + " / " + faces.size());
 
-                if (desiredState) {
+                if (state != 0 && desiredState) {
                     if (isTrainingActive) {
                         cameraView.takePhoto(picture, checkboxFlash.isChecked());
                     } else {
@@ -317,8 +315,9 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     isTrainingActive = false;
                     tvCountdown.setVisibility(View.GONE);
-                    trainingNumber = 0;
-                    Intent intent = new Intent(context, TrainingActivity.class);
+                    tvCountdown.setText("Keep smiling");
+                    trainingCount = 0;
+                    Intent intent = new Intent(context, BatchShotActivity.class);
                     intent.putExtra("photoPaths", photoTrainingPath);
                     startActivity(intent);
                     overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
@@ -414,13 +413,7 @@ public class MainActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA) &&
-                    ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE) &&
-                    ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_SNAP);
-            } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_SNAP);
-            }
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_SNAP);
         } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
@@ -453,9 +446,9 @@ public class MainActivity extends AppCompatActivity {
             cameraView.startCamera(isCameraFront ? CameraCore.CameraType.CAMERA_FRONT : CameraCore.CameraType.CAMERA_BACK);
         }
 
-        /*if (asyncDetector != null && !asyncDetector.isRunning()) {
+        if (asyncDetector != null && !asyncDetector.isRunning()) {
             asyncDetector.start();
-        }*/
+        }
 
         buttonSnap.setEnabled(true);
     }

@@ -3,12 +3,10 @@ package com.ku.autophoto.activities;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -16,6 +14,7 @@ import android.widget.RelativeLayout;
 
 import com.ku.autophoto.utility.BlurBuilder;
 import com.ku.autophoto.R;
+import com.ku.autophoto.utility.PhotoProvider;
 
 import java.io.File;
 
@@ -52,16 +51,27 @@ public class PhotoConfirmActivity extends AppCompatActivity {
             }
         });
 
-        Button buttonShare = findViewById(R.id.button_share);
-        buttonShare.setOnClickListener(new View.OnClickListener() {
+        Button buttonSave = findViewById(R.id.button_save);
+        buttonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent share = new Intent(Intent.ACTION_SEND);
-                share.setType("image/jpeg");
-                Uri uri = Uri.fromFile(new File(getIntent().getStringExtra("photoPath")));
-                share.putExtra(Intent.EXTRA_STREAM, uri);
-                startActivity(Intent.createChooser(share, "Share photo"));
+                context.getContentResolver().notifyChange(PhotoProvider.getPhotoUri(new File(getIntent().getStringExtra("photoPath"))), null);
+                setResult(2);
+                finish();
+                overridePendingTransition(R.anim.anim_open_right, R.anim.anim_close_right);
+            }
+        });
+
+        Button buttonDelete = findViewById(R.id.button_delete);
+        buttonDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new File(getIntent().getStringExtra("photoPath")).delete();
+                setResult(2);
+                finish();
+                overridePendingTransition(R.anim.anim_open_right, R.anim.anim_close_right);
             }
         });
     }
+
 }

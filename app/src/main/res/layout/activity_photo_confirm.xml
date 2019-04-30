@@ -14,7 +14,7 @@
 
     <ImageView
         android:id="@+id/camera_image"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -23,19 +23,34 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/button_share"
+        android:id="@+id/button_save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:paddingLeft="30dp"
-        android:paddingRight="30dp"
+        android:paddingLeft="60dp"
+        android:paddingRight="60dp"
         android:background="@drawable/selector_button_share"
-        android:text="SHARE"
+        android:text="SAVE"
         android:textSize="20sp"
         android:textColor="@color/colorWhite"
         app:layout_constraintTop_toBottomOf="@id/camera_image"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toStartOf="@id/button_delete" />
+
+    <Button
+        android:id="@+id/button_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:paddingLeft="50dp"
+        android:paddingRight="50dp"
+        android:background="@drawable/selector_button_share"
+        android:text="DELETE"
+        android:textSize="20sp"
+        android:textColor="@color/colorWhite"
+        app:layout_constraintTop_toBottomOf="@id/camera_image"
+        app:layout_constraintStart_toEndOf="@id/button_save"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <RelativeLayout
         android:id="@+id/layout_back"

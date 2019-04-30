@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.graphics.Typeface;
 
 import android.media.effect.Effect;
@@ -66,9 +65,6 @@ public class FilterActivity extends AppCompatActivity {
     private int imageWidth, imageHeight;
     private boolean isVertical, isHorizontal, isEffectApplied, isDone;
     private String effectNames[] = new String[] {"original", "summer", "vivid", "cold", "dark", "lucid", "noir", "americano"};
-
-    private static final int TARGET_WIDTH = 768;
-    private static final int TARGET_HEIGHT = 1024;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -522,8 +518,15 @@ public class FilterActivity extends AppCompatActivity {
 
         Intent intent = new Intent(context, PhotoConfirmActivity.class);
         intent.putExtra("photoPath", getIntent().getStringExtra("photoPath"));
-        startActivity(intent);
+        startActivityForResult(intent, 123);
         overridePendingTransition(R.anim.anim_open_left, R.anim.anim_close_left);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == 2) {
+            finish();
+        }
     }
 
     public Bitmap takeScreenshot(GL10 mGL) {
@@ -542,11 +545,11 @@ public class FilterActivity extends AppCompatActivity {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         bitmap.copyPixelsFromBuffer(ibt);
 
-        float scaleWidth = ((float) TARGET_WIDTH) / width;
-        float scaleHeight = ((float) TARGET_HEIGHT) / height;
-        Matrix matrix = new Matrix();
-        matrix.postScale(scaleWidth, scaleHeight);
-        Bitmap resizedBitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, false);
+        //float scaleWidth = ((float) TARGET_WIDTH) / width;
+        //float scaleHeight = ((float) TARGET_HEIGHT) / height;
+        //Matrix matrix = new Matrix();
+        //matrix.postScale(scaleWidth, scaleHeight);
+        Bitmap resizedBitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height);
         bitmap.recycle();
         return resizedBitmap;
     }

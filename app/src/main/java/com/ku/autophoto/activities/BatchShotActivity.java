@@ -5,9 +5,11 @@ import androidx.core.content.ContextCompat;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -18,14 +20,16 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.ku.autophoto.R;
+import com.ku.autophoto.utility.BlurBuilder;
 import com.ku.autophoto.utility.PhotoModal;
+import com.ku.autophoto.utility.PhotoProvider;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public class TrainingActivity extends AppCompatActivity {
+public class BatchShotActivity extends AppCompatActivity {
 
-    private int swipeStatus, width, screenCenter, x_cord, y_cord, x, y;
+    private int swipeStatus, width, screenCenter, x_cord, y_cord, x, y, totalPhoto = 0;
     private float alphaValue = 0;
 
     private Context context;
@@ -35,7 +39,7 @@ public class TrainingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_training);
+        setContentView(R.layout.activity_batch_shot);
 
         context = this;
 
@@ -43,12 +47,24 @@ public class TrainingActivity extends AppCompatActivity {
 
         screenCenter = width / 2;
 
+        Bitmap originalBitmap = null;
+        try {
+            originalBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.fromFile(new File(getIntent().getStringArrayExtra("photoPaths")[0])));
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        Bitmap blurredBitmap = BlurBuilder.blur(context, originalBitmap, 0.1f, 25f);
+        final ImageView backgroundImage = findViewById(R.id.background_image);
+        backgroundImage.setImageBitmap(blurredBitmap);
+
         final RelativeLayout parentView = findViewById(R.id.layout_swipe);
 
         for (int i = 0; i < getIntent().getStringArrayExtra("photoPaths").length; i++) {
             PhotoModal model = new PhotoModal();
             photos.add(model);
         }
+
+        totalPhoto = photos.size();
 
         for (int i = 0; i < photos.size(); i++) {
 
@@ -99,12 +115,10 @@ public class TrainingActivity extends AppCompatActivity {
 
             TextView tvName = containerView.findViewById(R.id.tvId);
 
-            tvName.setText(Integer.toString(1 + (int) containerView.getTag()));
+            tvName.setText(Integer.toString(photos.size() - i));
 
             relativeLayoutContainer.setOnTouchListener(new View.OnTouchListener() {
-
                 public boolean onTouch(View v, MotionEvent event) {
-
                     x_cord = (int) event.getRawX();
                     y_cord = (int) event.getRawY();
 
@@ -174,10 +188,16 @@ public class TrainingActivity extends AppCompatActivity {
                                 Log.e("Event_Status :-> ", "UNLIKE");
                                 parentView.removeView(containerView);
                                 new File((String) containerView.getTag()).delete();
+                                totalPhoto--;
+                                if (totalPhoto <= 0)
+                                    finish();
                             } else if (swipeStatus == 2) {
                                 Log.e("Event_Status :-> ", "Liked");
                                 parentView.removeView(containerView);
-                                new File((String) containerView.getTag()).delete();
+                                context.getContentResolver().notifyChange(PhotoProvider.getPhotoUri(new File((String) containerView.getTag())), null);
+                                totalPhoto--;
+                                if (totalPhoto <= 0)
+                                    finish();
                             }
                             break;
                         default:

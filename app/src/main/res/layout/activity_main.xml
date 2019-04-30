@@ -19,6 +19,7 @@
         app:layout_constraintDimensionRatio="1"
         app:layout_constraintWidth_percent="0.1"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/camera_view"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
@@ -43,6 +44,7 @@
         android:layout_marginTop="12dp"
         android:background="@drawable/selector_button_emotion"
         android:button="@android:color/transparent"
+        app:layout_constraintBottom_toTopOf="@id/camera_view"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintDimensionRatio="1"
         app:layout_constraintWidth_percent="0.11"
